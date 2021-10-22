@@ -463,6 +463,7 @@ class IPyNbCell(pytest.Item):
                     if key == 'data':
                         # Check if a dataframe structutral equivalence test is requested
                         df_test, data_key, reference_df_test = self.compare_dataframes(reference, key)
+                        # If we have passed a structural test, we don't want to capture any of the other fields?
                         if df_test:
                             reference_outs[data_key].append(reference_df_test)
                         else:
@@ -475,10 +476,13 @@ class IPyNbCell(pytest.Item):
                     else:
                         # Create the dictionary entries on the fly, from the
                         # existing ones to be compared
+                        # This might include things like key=='std_out' printed messages
                         reference_outs[key].append(self.sanitize(reference[key]))
 
 
         # the same for the testing outputs (the cells that are being executed)
+        # Verbose diagnostic reporting
+        #self.comparison_traceback.append(f"TEST: {test}")
         for testing in test:
             for key in testing.keys():
                 if key not in skip_compare:
@@ -490,10 +494,9 @@ class IPyNbCell(pytest.Item):
                         else:
                             for data_key in testing[key].keys():
                                 if data_key not in skip_compare:
-                                    # Verbose diagnostic reporting
-                                    #self.comparison_traceback.append(f"TESTING: {testing}")
                                     testing_outs[data_key].append(self.sanitize(testing[key][data_key]))
                     else:
+                        # This might include things like key=='std_out' printed messages
                         testing_outs[key].append(self.sanitize(testing[key]))
 
         # Use this to force a return here and preview the initial traceback output
@@ -502,19 +505,24 @@ class IPyNbCell(pytest.Item):
         ref_keys = set(reference_outs.keys())
         test_keys = set(testing_outs.keys())
 
-        if ref_keys - test_keys:
+        missing_output_fields = ref_keys - test_keys
+        unexpected_output_fields = test_keys - ref_keys
+
+        if missing_output_fields:
             self.comparison_traceback.append(
                 cc.FAIL
                 + "Missing output fields from running code: %s"
-                % (ref_keys - test_keys)
+                % (missing_output_fields)
+                + '\n'+'\n'.join([f"\t{k}: {reference_outs[k]}" for k in missing_output_fields])
                 + cc.ENDC
             )
             return False
-        elif test_keys - ref_keys:
+        elif unexpected_output_fields:
             self.comparison_traceback.append(
                 cc.FAIL
                 + "Unexpected output fields from running code: %s"
-                % (test_keys - ref_keys)
+                % (unexpected_output_fields)
+                + '\n'+'\n'.join([f"\t{k}: {testing_outs[k]}" for k in unexpected_output_fields])
                 + cc.ENDC
             )
             return False
