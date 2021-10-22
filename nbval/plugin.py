@@ -286,10 +286,27 @@ class IPyNbFile(pytest.File):
         self.setup_sanitize_files()
         if self.parent.config.option.nbval_ignore_core_sanitisation:
             self.core_sanitizer()
+        if self.parent.config.option.nbval_test_timeit:
+            self.timeit_sanitiser()
 
         if getattr(self.parent.config.option, 'cov_source', None):
             setup_coverage(self.parent.config, self.kernel, getattr(self, "fspath", None))
 
+    def timeit_sanitiser(self):
+        """Sanitise %%timeit outputs."""
+        timeit_regex="""[regex1]
+[regext1]
+regex: CPU times: .*
+replace: CPU times: CPUTIME
+
+[regext2]
+regex: Wall time: .*
+replace: Wall time: WALLTIME
+
+[regext3]
+regex: .* per loop \(mean ± std. dev. of .* runs, .* loops each\)
+replace: TIMEIT_REPORT"""
+        self.sanitize_patterns.update(get_sanitize_patterns(timeit_regex)) 
 
     # The following core sanitisation in part relates to handling timeit strings
     # However, it might be more useful to be able to compare times
@@ -300,18 +317,7 @@ class IPyNbFile(pytest.File):
         core_regex="""[regex1]
 regex: <graphviz.files.Source at [^>]*>
 replace: <graphviz.files.Source>
-
-[regex2]
-regex: CPU times: .*
-replace: CPU times: CPUTIME
-
-[regex3]
-regex: Wall time: .*
-replace: Wall time: WALLTIME
-
-[regex4]
-regex: .* per loop \(mean ± std. dev. of .* runs, .* loops each\)
-replace: TIMEIT_REPORT"""
+"""
         self.sanitize_patterns.update(get_sanitize_patterns(core_regex))  
 
     def setup_sanitize_files(self):
@@ -387,11 +393,8 @@ replace: TIMEIT_REPORT"""
                     )
                 options.update(comment_opts)
                 # If we are in a %%timeit cell, we may want to ignore it
-                if cell.source.startswith("%%timeit"):
-                    if self.parent.config.option.nbval_skip_timeit:
+                if cell.source.startswith("%%timeit") and self.parent.config.option.nbval_skip_timeit:
                         options.update({"skip": True})
-                    elif self.parent.config.option.nbval_test_timeit:
-                        options.update({"check": False})
 
                 options.setdefault('check', self.compare_outputs)
                 name = 'Code cell ' + str(cell_num)
