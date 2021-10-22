@@ -291,6 +291,10 @@ class IPyNbFile(pytest.File):
             setup_coverage(self.parent.config, self.kernel, getattr(self, "fspath", None))
 
 
+    # The following core sanitisation in part relates to handling timeit strings
+    # However, it might be more useful to be able to compare times
+    # and raise an error report it, for example, the timing is an order of magnitude
+    # or more out, but not if the times are about the same?
     def core_sanitizer(self):
         """Define a core set of sanitisation expressions."""
         core_regex="""[regex1]
