@@ -1,7 +1,7 @@
 """
 pytest ipython plugin modification
 
-Authors: D. Cortes, O. Laslett, T. Kluyver, H. Fangohr, V.T. Fauske
+Authors: D. Cortes, O. Laslett, T. Kluyver, H. Fangohr, V.T. Fauske, A. J. Hirst
 
 """
 
