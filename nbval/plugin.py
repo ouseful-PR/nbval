@@ -658,14 +658,14 @@ class IPyNbCell(pytest.Item):
             self.comparison_traceback.append(cc.OKGREEN 
                 + f"df size match: {size_match} [{left[0]}]" + cc.FAIL)
         else:
-            self.comparison_traceback.append("df size mismatch")
+            self.comparison_traceback.append("df size mismatch:")
             self.fallback_error_report(left[0], right[0])
         
         if cols_match:
             self.comparison_traceback.append(cc.OKGREEN
                 + f"df cols match: {cols_match} [{left[1]}]"+ cc.FAIL)
         else:
-            self.comparison_traceback.append("df cols mismatch")
+            self.comparison_traceback.append("df cols mismatch:")
             self.fallback_error_report(left[1], right[1])
         self.comparison_traceback.append(cc.ENDC)
 
