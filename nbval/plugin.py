@@ -72,6 +72,9 @@ def pytest_addoption(parser):
     group.addoption('--nbval', action='store_true',
                     help="Run Jupyter notebooks, validating all output")
 
+    group.addoption('--nbval-ignore-core-sanitisation', action='store_false',
+                    help="Ignore default sanitisation")
+
     group.addoption('--nbval-test-timeit', action='store_false',
                     help="Ignore %%timeit magic cells output")
 
@@ -279,10 +282,33 @@ class IPyNbFile(pytest.File):
             cwd=str(self.fspath.dirname),
             startup_timeout=self.config.option.nbval_kernel_startup_timeout, 
         )
+
         self.setup_sanitize_files()
+        if self.parent.config.option.nbval_ignore_core_sanitisation:
+            self.core_sanitizer()
+
         if getattr(self.parent.config.option, 'cov_source', None):
             setup_coverage(self.parent.config, self.kernel, getattr(self, "fspath", None))
 
+
+    def core_sanitizer(self):
+        """Define a core set of sanitisation expressions."""
+        core_regex="""[regex1]
+regex: <graphviz.files.Source at [^>]*>
+replace: <graphviz.files.Source>
+
+[regex2]
+regex: CPU times: .*
+replace: CPU times: CPUTIME
+
+[regex3]
+regex: Wall time: .*
+replace: Wall time: WALLTIME
+
+[regex4]
+regex: .* per loop \(mean ± std. dev. of .* runs, .* loops each\)
+replace: TIMEIT_REPORT"""
+        self.sanitize_patterns.update(get_sanitize_patterns(core_regex))  
 
     def setup_sanitize_files(self):
         """
