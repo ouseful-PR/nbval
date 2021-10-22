@@ -16,6 +16,8 @@ import hashlib
 import warnings
 from collections import OrderedDict, defaultdict
 
+import pandas as pd
+
 from queue import Empty
 
 # for reading notebook files
@@ -374,6 +376,7 @@ class IPyNbCell(pytest.Item):
         self.parent = parent
         self.cell_num = cell_num
         self.cell = cell
+        self.tags = cell.metadata.get('tags', None)
         self.test_outputs = None
         self.options = options
         self.config = parent.parent.config
@@ -414,6 +417,13 @@ class IPyNbCell(pytest.Item):
         description = "%s::Cell %d" % (self.fspath.relto(self.config.rootdir), self.cell_num)
         return self.fspath, 0, description
 
+    def compare_dataframes(self, item, key="data", data_key="text/html"):
+        """Test outputs for dataframe comparison. """
+        if "nbval-test-df" in self.tags and data_key in item[key]:
+            df = pd.read_html(item[key][data_key])[0]
+            return True, data_key, (df.shape, df.columns.tolist())
+        return False, data_key, ()
+
     def compare_outputs(self, test, ref, skip_compare=None):
         # Use stored skips unless passed a specific value
         skip_compare = skip_compare or self.parent.skip_compare
@@ -437,17 +447,29 @@ class IPyNbCell(pytest.Item):
         testing_outs = defaultdict(list)
         reference_outs = defaultdict(list)
 
+        # The traceback from the comparison will be stored here.
+        self.comparison_traceback = []
+
+        # Verbose diagnostic reporting
+        #self.comparison_traceback.append(f"OPTIONS: {self.options}")
+        #self.comparison_traceback.append(f"TAGS: {self.tags}")
+        #self.comparison_traceback.append(f"REFS: {ref}")
+        df_test = False
         for reference in ref:
             for key in reference.keys():
                 # We discard the keys from the skip_compare list:
                 if key not in skip_compare:
                     # Flatten out MIME types from data of display_data and execute_result
                     if key == 'data':
-                        for data_key in reference[key].keys():
-                            # Filter the keys in the SUB-dictionary again:
-                            if data_key not in skip_compare:
-                                reference_outs[data_key].append(self.sanitize(reference[key][data_key]))
-
+                        # Check if a dataframe structutral equivalence test is requested
+                        df_test, data_key, reference_df_test = self.compare_dataframes(reference, key)
+                        if df_test:
+                            reference_outs[data_key].append(reference_df_test)
+                        else:
+                            for data_key in reference[key].keys():
+                                # Filter the keys in the SUB-dictionary again:
+                                if data_key not in skip_compare:
+                                    reference_outs[data_key].append(self.sanitize(reference[key][data_key]))
                     # Otherwise, just create a normal dictionary entry from
                     # one of the keys of the dictionary
                     else:
@@ -455,19 +477,27 @@ class IPyNbCell(pytest.Item):
                         # existing ones to be compared
                         reference_outs[key].append(self.sanitize(reference[key]))
 
+
         # the same for the testing outputs (the cells that are being executed)
         for testing in test:
             for key in testing.keys():
                 if key not in skip_compare:
                     if key == 'data':
-                        for data_key in testing[key].keys():
-                            if data_key not in skip_compare:
-                                testing_outs[data_key].append(self.sanitize(testing[key][data_key]))
+                        # Check if a dataframe structural equivalence test is requested
+                        df_test, data_key, testing_df_test = self.compare_dataframes(testing, key)
+                        if df_test:
+                            testing_outs[data_key].append(testing_df_test)
+                        else:
+                            for data_key in testing[key].keys():
+                                if data_key not in skip_compare:
+                                    # Verbose diagnostic reporting
+                                    #self.comparison_traceback.append(f"TESTING: {testing}")
+                                    testing_outs[data_key].append(self.sanitize(testing[key][data_key]))
                     else:
                         testing_outs[key].append(self.sanitize(testing[key]))
 
-        # The traceback from the comparison will be stored here.
-        self.comparison_traceback = []
+        # Use this to force a return here and preview the initial traceback output
+        #return False
 
         ref_keys = set(reference_outs.keys())
         test_keys = set(testing_outs.keys())
@@ -523,9 +553,56 @@ class IPyNbCell(pytest.Item):
             for ref_out, test_out in zip(ref_values, test_values):
                 # Compare the individual values
                 if ref_out != test_out:
-                    self.format_output_compare(key, ref_out, test_out)
+                    if df_test:
+                        self.format_output_compare_df(key, ref_out, test_out)
+                    else:
+                        self.format_output_compare(key, ref_out, test_out)
                     return False
         return True
+
+    def format_output_compare_df(self, key, left, right):
+        """Format a dataframe output comparison for printing"""
+        cc = self.colors
+
+        self.comparison_traceback.append(
+            cc.OKBLUE
+            + "dataframe mismatch from parsed '%s'" % key
+            + cc.FAIL)
+
+        size_match = left[0]==right[0]
+        cols_match = left[1]==right[1]
+        
+        if size_match:
+            self.comparison_traceback.append(cc.OKGREEN 
+                + f"df size match: {size_match} [{left[0]}]" + cc.FAIL)
+        else:
+            self.comparison_traceback.append("df size mismatch")
+            self.fallback_error_report(left[0], right[0])
+        
+        if cols_match:
+            self.comparison_traceback.append(cc.OKGREEN
+                + f"df cols match: {cols_match} [{left[1]}]"+ cc.FAIL)
+        else:
+            self.comparison_traceback.append("df cols mismatch")
+            self.fallback_error_report(left[1], right[1])
+        self.comparison_traceback.append(cc.ENDC)
+
+    def fallback_error_report(self, left, right):
+        # Fallback repr:
+        cc = self.colors
+
+        self.comparison_traceback.append(
+            "  <<<<<<<<<<<< Reference output from ipynb file:"
+            + cc.ENDC)
+        self.comparison_traceback.append(_indent(str(left)))
+        self.comparison_traceback.append(
+            cc.FAIL
+            + '  ============ disagrees with newly computed (test) output:'
+            + cc.ENDC)
+        self.comparison_traceback.append(_indent(str(right)))
+        self.comparison_traceback.append(
+            cc.FAIL
+            + '  >>>>>>>>>>>>')
 
     def format_output_compare(self, key, left, right):
         """Format an output for printing"""
@@ -551,19 +628,7 @@ class IPyNbCell(pytest.Item):
                 self.comparison_traceback.extend(new_expl)
                 break
         else:
-            # Fallback repr:
-            self.comparison_traceback.append(
-                "  <<<<<<<<<<<< Reference output from ipynb file:"
-                + cc.ENDC)
-            self.comparison_traceback.append(_indent(left))
-            self.comparison_traceback.append(
-                cc.FAIL
-                + '  ============ disagrees with newly computed (test) output:'
-                + cc.ENDC)
-            self.comparison_traceback.append(_indent(right))
-            self.comparison_traceback.append(
-                cc.FAIL
-                + '  >>>>>>>>>>>>')
+            self.fallback_error_report(left, right)
         self.comparison_traceback.append(cc.ENDC)
 
 
