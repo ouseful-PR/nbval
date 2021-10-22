@@ -376,7 +376,7 @@ class IPyNbCell(pytest.Item):
         self.parent = parent
         self.cell_num = cell_num
         self.cell = cell
-        self.tags = cell.metadata.get('tags', None)
+        self.tags = cell.metadata.get('tags', [])
         self.test_outputs = None
         self.options = options
         self.config = parent.parent.config
@@ -419,11 +419,23 @@ class IPyNbCell(pytest.Item):
 
     def compare_dataframes(self, item, key="data", data_key="text/html"):
         """Test outputs for dataframe comparison. """
-        if "nbval-test-df" in self.tags and data_key in item[key]:
+        df_test = False
+        test_out = ()
+        if "nbval-test-df" in self.tags and key in item and data_key in item[key]:
             df = pd.read_html(item[key][data_key])[0]
-            return True, data_key, (df.shape, df.columns.tolist())
-        return False, data_key, ()
+            df_test = True
+            test_out = (df.shape, df.columns.tolist())
+        return df_test, data_key, test_out
 
+    def compare_print_lines(self, item, key="stdout"):
+        """Test line count similarity in print output."""
+        linecount_test = False
+        test_out = None
+        if "nbval-test-linecount" in self.tags and key in item:
+            test_out = (len(item[key].split("\n")))
+            linecount_test = True
+        return linecount_test, test_out
+    
     def compare_outputs(self, test, ref, skip_compare=None):
         # Use stored skips unless passed a specific value
         skip_compare = skip_compare or self.parent.skip_compare
@@ -476,8 +488,12 @@ class IPyNbCell(pytest.Item):
                     else:
                         # Create the dictionary entries on the fly, from the
                         # existing ones to be compared
-                        # This might include things like key=='std_out' printed messages
-                        reference_outs[key].append(self.sanitize(reference[key]))
+                        # This might include things like key=='stdout' printed messages
+                        linecount_test, reference_linecount_test = self.compare_print_lines(reference)
+                        if linecount_test:
+                            reference_outs[key].append(reference_linecount_test)
+                        else:
+                            reference_outs[key].append(self.sanitize(reference[key]))
 
 
         # the same for the testing outputs (the cells that are being executed)
@@ -496,8 +512,12 @@ class IPyNbCell(pytest.Item):
                                 if data_key not in skip_compare:
                                     testing_outs[data_key].append(self.sanitize(testing[key][data_key]))
                     else:
-                        # This might include things like key=='std_out' printed messages
-                        testing_outs[key].append(self.sanitize(testing[key]))
+                        # This might include things like key=='stdout' printed messages
+                        linecount_test, testing_linecount_test = self.compare_print_lines(testing)
+                        if linecount_test:
+                            testing_outs[key].append(testing_linecount_test)
+                        else:
+                            testing_outs[key].append(self.sanitize(testing[key]))
 
         # Use this to force a return here and preview the initial traceback output
         #return False
@@ -563,7 +583,12 @@ class IPyNbCell(pytest.Item):
                 if ref_out != test_out:
                     if df_test:
                         self.format_output_compare_df(key, ref_out, test_out)
-                    else:
+                    if linecount_test:
+                        self.comparison_traceback.append(
+                            cc.OKBLUE
+                            + "linecount mismatch '%s'" % key
+                            + cc.FAIL)
+                    if not df_test and not linecount_test:
                         self.format_output_compare(key, ref_out, test_out)
                     return False
         return True
