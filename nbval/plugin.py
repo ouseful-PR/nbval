@@ -72,6 +72,12 @@ def pytest_addoption(parser):
     group.addoption('--nbval', action='store_true',
                     help="Run Jupyter notebooks, validating all output")
 
+    group.addoption('--nbval-test-timeit', action='store_false',
+                    help="Ignore %%timeit magic cells output")
+
+    group.addoption('--nbval-skip-timeit', action='store_true',
+                    help="Skip %%timeit magic cells output; this overrides --test-timeit")
+
     group.addoption('--nbval-lax', action='store_true',
                     help="Run Jupyter notebooks, only validating output on "
                          "cells marked with # NBVAL_CHECK_OUTPUT")
@@ -341,6 +347,7 @@ class IPyNbFile(pytest.File):
                         filename=loc,
                         lineno=0
                     )
+                    
                 for w in ws:
                     warnings.warn_explicit(
                         str(w.message),
@@ -349,6 +356,13 @@ class IPyNbFile(pytest.File):
                         lineno=0
                     )
                 options.update(comment_opts)
+                # If we are in a %%timeit cell, we may want to ignore it
+                if cell.source.startswith("%%timeit"):
+                    if self.parent.config.option.nbval_skip_timeit:
+                        options.update({"skip": True})
+                    elif self.parent.config.option.nbval_test_timeit:
+                        options.update({"check": False})
+
                 options.setdefault('check', self.compare_outputs)
                 name = 'Code cell ' + str(cell_num)
                 # https://docs.pytest.org/en/stable/deprecations.html#node-construction-changed-to-node-from-parent
