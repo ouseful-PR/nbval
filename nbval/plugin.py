@@ -155,6 +155,8 @@ comment_markers = {
     'NBVAL_CHECK_OUTPUT': 'check',
     'NBVAL_RAISES_EXCEPTION': 'check_exception',
     'NBVAL_SKIP': 'skip',
+    'NBVAL_VARIABLE_OUTPUT': ('check', False),
+    'FOLIUM_MAP': ('check', False),
 }
 
 metadata_tags = {
