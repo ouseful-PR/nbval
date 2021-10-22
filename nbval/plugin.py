@@ -316,7 +316,7 @@ class IPyNbFile(pytest.File):
         self.nb = nbformat.read(str(self.fspath), as_version=4)
 
         # Start the cell count
-        cell_num = 0
+        cell_num = 1
 
         # Iterate over the cells in the notebook
         for cell in self.nb.cells:
@@ -329,7 +329,7 @@ class IPyNbFile(pytest.File):
                 with warnings.catch_warnings(record=True) as ws:
                     options = defaultdict(bool, find_metadata_tags(cell.metadata))
                     comment_opts = dict(find_comment_markers(cell.source))
-                loc = '%s:Cell %d' % (getattr(self, "fspath", None), cell_num)
+                loc = '%s:Code cell %d' % (getattr(self, "fspath", None), cell_num)
                 if set(comment_opts.keys()) & set(options.keys()):
                     warnings.warn_explicit(
                         "Overlapping options from comments and metadata, "
@@ -348,7 +348,7 @@ class IPyNbFile(pytest.File):
                     )
                 options.update(comment_opts)
                 options.setdefault('check', self.compare_outputs)
-                name = 'Cell ' + str(cell_num)
+                name = 'Code cell ' + str(cell_num)
                 # https://docs.pytest.org/en/stable/deprecations.html#node-construction-changed-to-node-from-parent
                 if hasattr(IPyNbCell, "from_parent"):
                     yield IPyNbCell.from_parent(
@@ -398,7 +398,7 @@ class IPyNbCell(pytest.Item):
             msg_items = [
                 cc.FAIL + "Notebook cell execution failed" + cc.ENDC]
             formatstring = (
-                cc.OKBLUE + "Cell %d: %s\n\n" +
+                cc.OKBLUE + "Code cell %d: %s\n\n" +
                 "Input:\n" + cc.ENDC + "%s\n")
             msg_items.append(formatstring % (
                 exc.cell_num,
@@ -414,7 +414,7 @@ class IPyNbCell(pytest.Item):
             return "pytest plugin exception: %s" % str(exc)
 
     def reportinfo(self):
-        description = "%s::Cell %d" % (self.fspath.relto(self.config.rootdir), self.cell_num)
+        description = "%s::Code cell %d" % (self.fspath.relto(self.config.rootdir), self.cell_num)
         return self.fspath, 0, description
 
     def compare_dataframes(self, item, key="data", data_key="text/html"):
