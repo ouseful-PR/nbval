@@ -516,6 +516,7 @@ class IPyNbCell(pytest.Item):
         #self.comparison_traceback.append(f"TAGS: {self.tags}")
         #self.comparison_traceback.append(f"REFS: {ref}")
         df_test = False
+        linecount_test = False
         for reference in ref:
             for key in reference.keys():
                 # We discard the keys from the skip_compare list:
