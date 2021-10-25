@@ -31,10 +31,9 @@ This fork currently recognises the following additional tags:
 
 __Install this branch:__
 
-pip install --upgrage git+https://github.com/ouseful-PR/nbval.git@table-test
+`pip install --upgrage git+https://github.com/ouseful-PR/nbval.git@table-test`
 
-
-Available on PyPi:
+Original / official package available on PyPi:
 
     pip install nbval
 
