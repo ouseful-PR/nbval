@@ -157,6 +157,11 @@ def pytest_collect_file(path, parent):
             return IPyNbFile(path, parent)
 
 
+# Additional tags:
+# nbval-test-df
+# nbval-test-linecount
+# nbval-test-listlen
+# nbval-test-dictkeys
 
 comment_markers = {
     'PYTEST_VALIDATE_IGNORE_OUTPUT': ('check', False),  # For backwards compatibility
@@ -305,7 +310,8 @@ replace: Wall time: WALLTIME
 
 [regext3]
 regex: .* per loop \(mean ± std. dev. of .* runs, .* loops each\)
-replace: TIMEIT_REPORT"""
+replace: TIMEIT_REPORT
+"""
         self.sanitize_patterns.update(get_sanitize_patterns(timeit_regex)) 
 
     # The following core sanitisation in part relates to handling timeit strings
@@ -484,6 +490,32 @@ class IPyNbCell(pytest.Item):
             test_out = (len(item[key].split("\n")))
             linecount_test = True
         return linecount_test, test_out
+
+    def compare_list_len(self, item, key="data",  data_key="text/plain"):
+        list_test = False
+        list_len = None
+        if "nbval-test-listlen" in self.tags and key in item and data_key in item[key]:
+            try:
+                list_ = eval(item[key][data_key])
+                if isinstance(list_, list):
+                    list_len = len(list_)
+                list_test = True
+            except:
+                pass
+        return list_test, list_len
+
+    def compare_dict_keys(self, item, key="data",  data_key="text/plain"):
+        dict_test = False
+        dict_keys = None
+        if "nbval-test-dictkeys" in self.tags and key in item and data_key in item[key]:
+            try:
+                dict_ = eval(item[key][data_key])
+                if isinstance(dict_, dict):
+                    dict_keys = sorted(dict_.keys())
+                dict_test = True
+            except:
+                pass
+        return dict_test, dict_keys
     
     def compare_outputs(self, test, ref, skip_compare=None):
         # Use stored skips unless passed a specific value
@@ -516,6 +548,8 @@ class IPyNbCell(pytest.Item):
         #self.comparison_traceback.append(f"TAGS: {self.tags}")
         #self.comparison_traceback.append(f"REFS: {ref}")
         df_test = False
+        list_test = False
+        dict_test = False
         linecount_test = False
         for reference in ref:
             for key in reference.keys():
@@ -525,9 +559,15 @@ class IPyNbCell(pytest.Item):
                     if key == 'data':
                         # Check if a dataframe structutral equivalence test is requested
                         df_test, data_key, reference_df_test = self.compare_dataframes(reference, key)
+                        list_test, list_len = self.compare_list_len(reference, key)
+                        dict_test, dict_keys = self.compare_dict_keys(reference, key)
                         # If we have passed a structural test, we don't want to capture any of the other fields?
                         if df_test:
                             reference_outs[data_key].append(reference_df_test)
+                        elif list_test:
+                            reference_outs[data_key].append(list_len)
+                        elif dict_test:
+                            reference_outs[data_key].append(dict_keys)
                         else:
                             for data_key in reference[key].keys():
                                 # Filter the keys in the SUB-dictionary again:
@@ -555,8 +595,14 @@ class IPyNbCell(pytest.Item):
                     if key == 'data':
                         # Check if a dataframe structural equivalence test is requested
                         df_test, data_key, testing_df_test = self.compare_dataframes(testing, key)
+                        list_test, list_len = self.compare_list_len(testing, key)
+                        dict_test, dict_keys = self.compare_dict_keys(testing, key)
                         if df_test:
                             testing_outs[data_key].append(testing_df_test)
+                        elif list_test:
+                            testing_outs[data_key].append(list_len)
+                        elif dict_test:
+                            testing_outs[data_key].append(dict_keys)
                         else:
                             for data_key in testing[key].keys():
                                 if data_key not in skip_compare:
@@ -633,12 +679,24 @@ class IPyNbCell(pytest.Item):
                 if ref_out != test_out:
                     if df_test:
                         self.format_output_compare_df(key, ref_out, test_out)
+                    if list_test:
+                        self.comparison_traceback.append(
+                            cc.OKBLUE
+                            + " list length mismatch '%s'" % key
+                            + f": {ref_out} != {test_out}"
+                            + cc.FAIL)
+                    if dict_test:
+                        self.comparison_traceback.append(
+                            cc.OKBLUE
+                            + " dict keys mismatch '%s'" % key
+                            + f": {ref_out} != {test_out}"
+                            + cc.FAIL)
                     if linecount_test:
                         self.comparison_traceback.append(
                             cc.OKBLUE
-                            + "linecount mismatch '%s'" % key
+                            + " linecount mismatch '%s'" % key
                             + cc.FAIL)
-                    if not df_test and not linecount_test:
+                    if not df_test and not linecount_test and not list_test and not dict_test:
                         self.format_output_compare(key, ref_out, test_out)
                     return False
         return True
