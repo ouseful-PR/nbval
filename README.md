@@ -21,9 +21,10 @@ See [`docs/source/index.ipynb`](http://nbviewer.jupyter.org/github/computational
 
 This fork currently recognises the following additional tags:
 
-- `folium-map`: specify that the cell is a folium map output. (Maybe this should be `interactive-map` or `nbval-interactive-map`?). Currently I add this with `nbval-ignore-output`. If we come to handle this in `nbval` explicitly, we could then remove `nbval-ignore-output`;
-- `nbval-variable-output`: some cells return randomised or changeable output that cannot be easily sanitised using a regular eexpression. I have started using the `nbval-variable-output`, along with the `nbval-ignore-output`, to try to capture these. If we come to handle `nbval-variable-output` we might then remove `nbval-ignore-output`.
-- `nbval-count-lines`: where cells give varying output, but in a particular format, we could perhaps check that. For example, one check by proxy might be to compare just the row count. Another might be to check that a table has the same dataframe or table structure, for example, `nbval-table-size` or `nbval-df-size`. *(I raised a related issue [here](https://github.com/computationalmodelling/nbval/issues/174).)*
+- `folium-map`: specify that the cell is a folium map output. The cell output is then ignored as per `nbval-ignore-output`;
+- `nbval-variable-output`: some cells return randomised or changeable output that cannot be easily sanitised using a regular eexpression. The output of cells tagged with `nbval-variable-output` are ignored as per `nbval-ignore-output`;
+- `nbval-count-lines`: where cells contain printed output that changes in content but not structure (eg the same number of lines are printed on each run), the `nbval-count-lines` will check that the same number of lines are printed by a cell in the test notebook as in the reference notebook;
+- `nbval-test-df-size` tag: if a cell returns a *pandas* dataframe, check that the test dataframe has a similar structure to the reference dataframe, even if the content differs. Structural tests currently include: shape test (same number of rows and columns; common column names test);
 - `nbval-test-listlen` tag: perform a structural comparison of the list length of a Python list output;
 - `nbval-test-dictkeys` tag: perform a structural comparison of the sorted keys of a Python dictionary output.
 
@@ -31,7 +32,7 @@ This fork currently recognises the following additional tags:
 
 __Install this branch:__
 
-`pip install --upgrage git+https://github.com/ouseful-PR/nbval.git@table-test`
+`pip install --upgrade git+https://github.com/ouseful-PR/nbval.git@table-test`
 
 Original / official package available on PyPi:
 
