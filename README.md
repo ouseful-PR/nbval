@@ -17,7 +17,18 @@ output will fail.
 
 See [`docs/source/index.ipynb`](http://nbviewer.jupyter.org/github/computationalmodelling/nbval/blob/master/docs/source/index.ipynb) for the full documentation.
 
+## This Fork ([`ouseful-PR/nbval@table-test`](https://github.com/ouseful-PR/nbval/tree/table-test))
+
+This fork currently recognises the following additional tags:
+
+- `folium-map`: specify that the cell is a folium map output. (Maybe this should be `interactive-map` or `nbval-interactive-map`?). Currently I add this with `nbval-ignore-output`. If we come to handle this in `nbval` explicitly, we could then remove `nbval-ignore-output`;
+- `nbval-variable-output`: some cells return randomised or changeable output that cannot be easily sanitised using a regular eexpression. I have started using the `nbval-variable-output`, along with the `nbval-ignore-output`, to try to capture these. If we come to handle `nbval-variable-output` we might then remove `nbval-ignore-output`.
+- `nbval-count-lines`: where cells give varying output, but in a particular format, we could perhaps check that. For example, one check by proxy might be to compare just the row count. Another might be to check that a table has the same dataframe or table structure, for example, `nbval-table-size` or `nbval-df-size`. *(I raised a related issue [here](https://github.com/computationalmodelling/nbval/issues/174).)*
+- `nbval-test-listlen` tag: perform a structural comparison of the list length of a Python list output;
+- `nbval-test-dictkeys` tag: perform a structural comparison of the sorted keys of a Python dictionary output.
+
 ## Installation
+
 Available on PyPi:
 
     pip install nbval
@@ -30,8 +41,8 @@ from the main directory. To uninstall:
 
     pip uninstall nbval
 
-
 ## How it works
+
 The extension looks through every cell that contains code in an IPython notebook
 and then the `py.test` system compares the outputs stored in the notebook
 with the outputs of the cells when they are executed. Thus, the notebook itself is
@@ -56,6 +67,7 @@ and how the system works, can be found here
 https://jupyter-client.readthedocs.io/en/latest/messaging.html#messaging
 
 ## Execution
+
 To execute this plugin, you need to execute `py.test` with the `nbval` flag
 to differentiate the testing from the usual python files:
 
@@ -104,12 +116,10 @@ The `regex` option contains the expression that is going to be matched in the ou
 names do not have any meaning or influence in the testing system, it will take
 all the sections and replace the corresponding options.
 
-
 ### Coverage
 
 To use notebooks to generate coverage for imported code, use the pytest-cov plugin.
 nbval should automatically detect the relevant options and configure itself with it.
-
 
 ### Parallel execution
 
@@ -117,13 +127,11 @@ nbval is compatible with the pytest-xdist plugin for parallel running of tests. 
 however require the use of the `--dist loadscope` flag to ensure that all cells of one
 notebook are run on the same kernel.
 
-
 ## Help
 The `py.test` system help can be obtained with `py.test -h`, which will
 show all the flags that can be passed to the command, such as the
 verbose `-v` option. Nbval's options can be found under the
 `Jupyter Notebook validation` section.
-
 
 ## Acknowledgements
 This plugin was inspired by Andrea Zonca's py.test plugin for collecting unit
@@ -145,7 +153,6 @@ We acknowledge financial support from
 
 - The Gordon and Betty Moore Foundation through Grant GBMF #4856,by the
   Alfred P. Sloan Foundation and by the Helmsley Trust.
-
 
 ## Authors
 
