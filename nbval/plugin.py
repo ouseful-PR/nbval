@@ -149,6 +149,10 @@ def pytest_collect_file(path, parent):
     Collect IPython notebooks using the specified pytest hook
     """
     opt = parent.config.option
+
+    # TO DO - add ability to exclude files
+    # TO DO - alternatively, allow a tag that exits tests for that notebook from the cell it appears in
+
     if (opt.nbval or opt.nbval_lax) and path.fnmatch("*.ipynb"):
         # https://docs.pytest.org/en/stable/deprecations.html#node-construction-changed-to-node-from-parent
         if hasattr(IPyNbFile, "from_parent"):
