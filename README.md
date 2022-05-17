@@ -123,7 +123,10 @@ all the sections and replace the corresponding options.
 
 ### Useful Sanitiser Regular Expressions
 
+*The first line is IPython magic that would write the remaining contents to the specified file. Omit that first line if you are copying and pasting the regexes for your own sanitiser file.*
+
 ```
+%%writefile ouseful-sanitiser.cfg
 [regex1]
 regex: Figure size \d.*x\d.*
 replace: FIGURE-SIZE
@@ -138,11 +141,22 @@ regex: File size: .*B
 replace: FILE_SIZE
 [regex5]
 regex: <pymongo.results.InsertOneResult at.*>
-replace: <pymongo.results.InsertOneResult
+replace: <pymongo.results.InsertOneResult>
 [regex6]
-regex: ObjectId('.*')
+regex: ObjectId\('.*'\)
 replace: ObjectId(...)
+[regex7]
+regex: <pymongo.results.UpdateResult at .*>
+replace: <pymongo.results.UpdateResult>
+[regex8]
+regex: <pymongo.results.InsertManyResult at .*>
+replace: <pymongo.results.InsertManyResult>
+[regex9]
+regex: 0x[0-9a-f]*
+replace: 0xHASH
 ```
+
+We can use the sanitiser file with a command of the form `py.test --nbval */*.ipynb --sanitize-with ouseful-sanitiser.cfg`
 
 ### Coverage
 
@@ -156,6 +170,7 @@ however require the use of the `--dist loadscope` flag to ensure that all cells 
 notebook are run on the same kernel.
 
 ## Help
+
 The `py.test` system help can be obtained with `py.test -h`, which will
 show all the flags that can be passed to the command, such as the
 verbose `-v` option. Nbval's options can be found under the
