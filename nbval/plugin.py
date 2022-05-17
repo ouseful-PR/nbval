@@ -169,6 +169,7 @@ def pytest_collect_file(path, parent):
 # nbval-test-linecount
 # nbval-test-listlen
 # nbval-test-dictkeys
+# nbval-list-membership
 
 comment_markers = {
     'PYTEST_VALIDATE_IGNORE_OUTPUT': ('check', False),  # For backwards compatibility
@@ -534,6 +535,21 @@ class IPyNbCell(pytest.Item):
                 pass
         return list_test, list_len
 
+    def compare_list_membership(self, item, key="data",  data_key="text/plain"):
+        """See if list members are same, when sorted."""
+        list_members_test = False
+        list_members = []
+        if "nbval-list-membership" in self.tags and key in item and data_key in item[key]:
+            try:
+                list_ = eval(item[key][data_key])
+                if isinstance(list_, list):
+                    list_.sort()
+                    list_members = list_
+                list_members_test = True
+            except:
+                pass
+        return list_members_test, list_members
+
     def compare_dict_keys(self, item, key="data",  data_key="text/plain"):
         dict_test = False
         dict_keys = None
@@ -590,12 +606,15 @@ class IPyNbCell(pytest.Item):
                         # Check if a dataframe structutral equivalence test is requested
                         df_test, data_key, reference_df_test = self.compare_dataframes(reference, key)
                         list_test, list_len = self.compare_list_len(reference, key)
+                        list_members_test, list_members = self.compare_list_membership(reference, key)
                         dict_test, dict_keys = self.compare_dict_keys(reference, key)
                         # If we have passed a structural test, we don't want to capture any of the other fields?
                         if df_test:
                             reference_outs[data_key].append(reference_df_test)
                         elif list_test:
                             reference_outs[data_key].append(list_len)
+                        elif list_members_test:
+                            reference_outs[data_key].append(list_members)
                         elif dict_test:
                             reference_outs[data_key].append(dict_keys)
                         else:
@@ -626,11 +645,14 @@ class IPyNbCell(pytest.Item):
                         # Check if a dataframe structural equivalence test is requested
                         df_test, data_key, testing_df_test = self.compare_dataframes(testing, key)
                         list_test, list_len = self.compare_list_len(testing, key)
+                        list_members_test, list_members = self.compare_list_membership(reference, key)
                         dict_test, dict_keys = self.compare_dict_keys(testing, key)
                         if df_test:
                             testing_outs[data_key].append(testing_df_test)
                         elif list_test:
                             testing_outs[data_key].append(list_len)
+                        elif list_members_test:
+                            reference_outs[data_key].append(list_members)
                         elif dict_test:
                             testing_outs[data_key].append(dict_keys)
                         else:
@@ -713,6 +735,12 @@ class IPyNbCell(pytest.Item):
                         self.comparison_traceback.append(
                             cc.OKBLUE
                             + " list length mismatch '%s'" % key
+                            + f": {ref_out} != {test_out}"
+                            + cc.FAIL)
+                    if list_members_test:
+                        self.comparison_traceback.append(
+                            cc.OKBLUE
+                            + " list members mismatch '%s'" % key
                             + f": {ref_out} != {test_out}"
                             + cc.FAIL)
                     if dict_test:
