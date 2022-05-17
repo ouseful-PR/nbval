@@ -595,6 +595,7 @@ class IPyNbCell(pytest.Item):
         #self.comparison_traceback.append(f"REFS: {ref}")
         df_test = False
         list_test = False
+        list_members_test = False
         dict_test = False
         linecount_test = False
         for reference in ref:
@@ -645,14 +646,14 @@ class IPyNbCell(pytest.Item):
                         # Check if a dataframe structural equivalence test is requested
                         df_test, data_key, testing_df_test = self.compare_dataframes(testing, key)
                         list_test, list_len = self.compare_list_len(testing, key)
-                        list_members_test, list_members = self.compare_list_membership(reference, key)
+                        list_members_test, list_members = self.compare_list_membership(testing, key)
                         dict_test, dict_keys = self.compare_dict_keys(testing, key)
                         if df_test:
                             testing_outs[data_key].append(testing_df_test)
                         elif list_test:
                             testing_outs[data_key].append(list_len)
                         elif list_members_test:
-                            reference_outs[data_key].append(list_members)
+                            testing_outs[data_key].append(list_members)
                         elif dict_test:
                             testing_outs[data_key].append(dict_keys)
                         else:
