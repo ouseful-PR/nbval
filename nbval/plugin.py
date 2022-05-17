@@ -81,6 +81,9 @@ def pytest_addoption(parser):
     group.addoption('--nbval-skip-timeit', action='store_true',
                     help="Skip %%timeit magic cells output; this overrides --test-timeit")
 
+    group.addoption('--nbval-skip-memit', action='store_true',
+                    help="Skip %%memit magic cells output; this overrides --test-memit")
+
     group.addoption('--nbval-lax', action='store_true',
                     help="Run Jupyter notebooks, only validating output on "
                          "cells marked with # NBVAL_CHECK_OUTPUT")
@@ -297,12 +300,14 @@ class IPyNbFile(pytest.File):
             self.core_sanitizer()
         if self.parent.config.option.nbval_test_timeit:
             self.timeit_sanitiser()
+        #if self.parent.config.option.nbval_test_memit:
+        #    self.memit_sanitiser()
 
         if getattr(self.parent.config.option, 'cov_source', None):
             setup_coverage(self.parent.config, self.kernel, getattr(self, "fspath", None))
 
     def timeit_sanitiser(self):
-        """Sanitise %%timeit outputs."""
+        """Sanitise %%time and %%timeit outputs."""
         timeit_regex="""[regex1]
 [regext1]
 regex: CPU times: .*
@@ -373,7 +378,7 @@ replace: <graphviz.files.Source>
         cell_num = 1
 
         # Iterate over the cells in the notebook
-        for cell in self.nb.cells:
+        for i, cell in enumerate(self.nb.cells):
             # Skip the cells that have text, headings or related stuff
             # Only test code cells
             if cell.cell_type == 'code':
@@ -403,8 +408,29 @@ replace: <graphviz.files.Source>
                     )
                 options.update(comment_opts)
                 # If we are in a %%timeit cell, we may want to ignore it
-                if cell.source.startswith("%%timeit") and self.parent.config.option.nbval_skip_timeit:
+                # Also need to handle last line %timeit
+                # We need a chomper or code parser to drop commented lines at end of cell...
+                # This could be # prefixed lines or triple quoted lines
+                if self.parent.config.option.nbval_skip_timeit:
+                    if cell.source.startswith("%%time"):
                         options.update({"skip": True})
+
+                if self.parent.config.option.nbval_skip_memit:
+                    if cell.source.startswith("%%memit"):
+                        options.update({"skip": True})
+                        
+                # If last line is magic, ignore output
+                if self.parent.config.option.nbval_skip_timeit or self.parent.config.option.nbval_skip_memit:
+                    cell_lines = [c for c in cell.source.split("\n") if c.strip()]
+                    if cell_lines:
+                        if self.parent.config.option.nbval_skip_timeit:
+                            if cell_lines[-1].startswith("%time"):
+                                options.update({"check": False})
+                            self.nb.cells[i].source = "\n".join([c for c in cell.source.split("\n") if not c.strip().startswith("%timeit")])
+                        if self.parent.config.option.nbval_skip_memit:
+                            if cell_lines[-1].startswith("%memit"):
+                                options.update({"check": False})
+                            self.nb.cells[i].source = "\n".join([c for c in cell.source.split("\n") if not c.strip().startswith("%memit")])
 
                 options.setdefault('check', self.compare_outputs)
                 name = 'Code cell ' + str(cell_num)
