@@ -121,6 +121,29 @@ The `regex` option contains the expression that is going to be matched in the ou
 names do not have any meaning or influence in the testing system, it will take
 all the sections and replace the corresponding options.
 
+### Useful Sanitiser Regular Expressions
+
+```
+[regex1]
+regex: Figure size \d.*x\d.*
+replace: FIGURE-SIZE
+[regex2]
+regex: .* per loop (mean ± std. dev. of \d+ runs, \d+ loop each)
+replace: TIMING-REPORT
+[regex3]
+regex: peak memory: .* MiB, increment: .* MiB
+replace: MEMORY-REPORT
+[regex4]
+regex: File size: .*B
+replace: FILE_SIZE
+[regex5]
+regex: <pymongo.results.InsertOneResult at.*>
+replace: <pymongo.results.InsertOneResult
+[regex6]
+regex: ObjectId('.*')
+replace: ObjectId(...)
+```
+
 ### Coverage
 
 To use notebooks to generate coverage for imported code, use the pytest-cov plugin.
