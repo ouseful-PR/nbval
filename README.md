@@ -137,7 +137,7 @@ replace: TIMING-REPORT
 regex: peak memory: .* MiB, increment: .* MiB
 replace: MEMORY-REPORT
 [regex4]
-regex: File size: .*B
+regex: File size \(.*\): .*B
 replace: FILE_SIZE
 [regex5]
 regex: <pymongo.results.InsertOneResult at.*>
