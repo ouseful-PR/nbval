@@ -21,12 +21,60 @@ See [`docs/source/index.ipynb`](http://nbviewer.jupyter.org/github/computational
 
 This fork currently recognises the following additional tags:
 
-- `folium-map`: specify that the cell is a folium map output. The cell output is then ignored as per `nbval-ignore-output`;
 - `nbval-variable-output`: some cells return randomised or changeable output that cannot be easily sanitised using a regular eexpression. The output of cells tagged with `nbval-variable-output` are ignored as per `nbval-ignore-output`;
-- `nbval-count-lines`: where cells contain printed output that changes in content but not structure (eg the same number of lines are printed on each run), the `nbval-count-lines` will check that the same number of lines are printed by a cell in the test notebook as in the reference notebook;
-- `nbval-test-df` tag: if a cell returns a *pandas* dataframe, check that the test dataframe has a similar structure to the reference dataframe, even if the content differs. Structural tests currently include: shape test (same number of rows and columns; common column names test);
-- `nbval-test-listlen` tag: perform a structural comparison of the list length of a Python list output;
-- `nbval-test-dictkeys` tag: perform a structural comparison of the sorted keys of a Python dictionary output.
+- `folium-map`: specify that the cell is a folium map output. The cell output type is then checked to see whether it is a folium map object type;
+- `nbval-test-linecount`: where cells contain printed output that changes in content but not structure (eg the same number of lines are printed on each run), the `nbval-test-linecount` will check that the same number of lines are printed by a cell in the test notebook as in the reference notebook;
+- `nbval-test-df` tag: attempt to cast a cell outut to a *pandas* dataframe, then check that the test dataframe has a similar structure to the reference dataframe, even if the content differs. Structural tests currently include: shape test (same number of rows and columns; common column names test);
+- `nbval-test-listlen` tag: attempt to cast a cell output to a list, then compare the length of the lists;
+- `nbval-list-membership` tag: attempt to cast cell output to a list and then see whether the list elements are the same, irrespective of order *(this currently fails to handle nested lists?)*;
+- `nbval-set-membership` tag: attempt to cast cell output to a set, then compare membership;
+- `nbval-test-dictkeys` tag: attempt to cast cell output to a dict, then perform strutural equivalence tests *(currently limited to check that top-level dictionary keys are equivalent)().
+
+These tags provide a way of weakening test equivalence in a way that still allows useful tests to be performed. This is particularly useful where instructional notebooks are being tested that do not return strictly reproducible cell outputs, but where the shape or type of the returned elements from a particular cell should be consistent.
+
+These tests are being developed as part of an ongoing process to support the use and deployment of notebook based teaching materials over several years of course presentation in a distance education context. The notebooks themselves are intended to remain largely unchanged over time, but the Docker container based environment is updated on a per course presentation basis. Previously run notebooks are automatically tested in updated Docker containers to ensure that outputs are consistent with previous runs, if not stricly identical to them. Warnings and errors arising from updates will also be captured.
+
+A regular expression sanitiser can also be used to reduce the number of cell run failures by rewriting conventionally variable content.
+
+### Useful Sanitiser Regular Expressions
+
+*The first line is IPython magic that would write the remaining contents to the specified file. Omit that first line if you are copying and pasting the regexes for your own sanitiser file.*
+
+```
+%%writefile ouseful-sanitiser.cfg
+[regex1]
+regex: Figure size \d.*x\d.*
+replace: FIGURE-SIZE
+[regex2]
+regex: .* per loop (mean ± std. dev. of \d+ runs, \d+ loops? each)
+replace: TIMING-REPORT
+[regex3]
+regex: peak memory: .* MiB, increment: .* MiB
+replace: MEMORY-REPORT
+[regex4]
+regex: File size \(.*\): .*B
+replace: FILE_SIZE
+[regex5]
+regex: <pymongo.results.InsertOneResult at.*>
+replace: <pymongo.results.InsertOneResult>
+[regex6]
+regex: ObjectId\('.*'\)
+replace: ObjectId(...)
+[regex7]
+regex: <pymongo.results.UpdateResult at .*>
+replace: <pymongo.results.UpdateResult>
+[regex8]
+regex: <pymongo.results.InsertManyResult at .*>
+replace: <pymongo.results.InsertManyResult>
+[regex9]
+regex: 0x[0-9a-f]*
+replace: 0xHASH
+[regex10]
+regex: <Graph identifier=.* \(<class 'rdflib.graph.Graph'>\)>
+replace: <Graph identifier=IDENTIFER (<class 'rdflib.graph.Graph'>)>
+```
+
+We can use the sanitiser file with a command of the form `py.test --nbval */*.ipynb --sanitize-with ouseful-sanitiser.cfg`
 
 ## Installation
 
@@ -120,46 +168,6 @@ The `regex` option contains the expression that is going to be matched in the ou
 `replace` is the string that will replace the `regex` match. Currently, the section
 names do not have any meaning or influence in the testing system, it will take
 all the sections and replace the corresponding options.
-
-### Useful Sanitiser Regular Expressions
-
-*The first line is IPython magic that would write the remaining contents to the specified file. Omit that first line if you are copying and pasting the regexes for your own sanitiser file.*
-
-```
-%%writefile ouseful-sanitiser.cfg
-[regex1]
-regex: Figure size \d.*x\d.*
-replace: FIGURE-SIZE
-[regex2]
-regex: .* per loop (mean ± std. dev. of \d+ runs, \d+ loops? each)
-replace: TIMING-REPORT
-[regex3]
-regex: peak memory: .* MiB, increment: .* MiB
-replace: MEMORY-REPORT
-[regex4]
-regex: File size \(.*\): .*B
-replace: FILE_SIZE
-[regex5]
-regex: <pymongo.results.InsertOneResult at.*>
-replace: <pymongo.results.InsertOneResult>
-[regex6]
-regex: ObjectId\('.*'\)
-replace: ObjectId(...)
-[regex7]
-regex: <pymongo.results.UpdateResult at .*>
-replace: <pymongo.results.UpdateResult>
-[regex8]
-regex: <pymongo.results.InsertManyResult at .*>
-replace: <pymongo.results.InsertManyResult>
-[regex9]
-regex: 0x[0-9a-f]*
-replace: 0xHASH
-[regex10]
-regex: <Graph identifier=.* \(<class 'rdflib.graph.Graph'>\)>
-replace: <Graph identifier=IDENTIFER (<class 'rdflib.graph.Graph'>)>
-```
-
-We can use the sanitiser file with a command of the form `py.test --nbval */*.ipynb --sanitize-with ouseful-sanitiser.cfg`
 
 ### Coverage
 
