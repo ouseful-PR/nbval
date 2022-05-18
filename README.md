@@ -154,6 +154,9 @@ replace: <pymongo.results.InsertManyResult>
 [regex9]
 regex: 0x[0-9a-f]*
 replace: 0xHASH
+[regex10]
+regex: <Graph identifier=.* \(<class 'rdflib.graph.Graph'>\)>
+replace: <Graph identifier=IDENTIFER (<class 'rdflib.graph.Graph'>)>
 ```
 
 We can use the sanitiser file with a command of the form `py.test --nbval */*.ipynb --sanitize-with ouseful-sanitiser.cfg`
