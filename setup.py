@@ -26,6 +26,7 @@ setup(
         'nbformat',
         'ipykernel',
         'coverage',
+        'pandas'
     ],
     python_requires='>=3.6, <4',
     classifiers = [
