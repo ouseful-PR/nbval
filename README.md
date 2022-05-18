@@ -131,7 +131,7 @@ all the sections and replace the corresponding options.
 regex: Figure size \d.*x\d.*
 replace: FIGURE-SIZE
 [regex2]
-regex: .* per loop (mean ± std. dev. of \d+ runs, \d+ loop each)
+regex: .* per loop (mean ± std. dev. of \d+ runs, \d+ loops? each)
 replace: TIMING-REPORT
 [regex3]
 regex: peak memory: .* MiB, increment: .* MiB
