@@ -178,7 +178,6 @@ comment_markers = {
     'NBVAL_RAISES_EXCEPTION': 'check_exception',
     'NBVAL_SKIP': 'skip',
     'NBVAL_VARIABLE_OUTPUT': ('check', False),
-    'FOLIUM_MAP': ('check', False),
 }
 
 metadata_tags = {
@@ -503,6 +502,15 @@ class IPyNbCell(pytest.Item):
         description = "%s::Code cell %d" % (self.fspath.relto(self.config.rootdir), self.cell_num)
         return self.fspath, 0, description
 
+    def check_folium_map(self, item, key="data", data_key="text/plain"):
+        """Check that we have a folium map flavoured output."""
+        folium_test = False
+        test_out = False
+        if "folium-map" in self.tags and key in item:
+            folium_test = True
+            test_out = item[key][data_key][0].startswith("<folium.folium.Map")
+        return folium_test, test_out
+
     def compare_dataframes(self, item, key="data", data_key="text/html"):
         """Test outputs for dataframe comparison. """
         df_test = False
@@ -598,6 +606,7 @@ class IPyNbCell(pytest.Item):
         list_members_test = False
         dict_test = False
         linecount_test = False
+        folium_test = False
         for reference in ref:
             for key in reference.keys():
                 # We discard the keys from the skip_compare list:
@@ -609,6 +618,7 @@ class IPyNbCell(pytest.Item):
                         list_test, list_len = self.compare_list_len(reference, key)
                         list_members_test, list_members = self.compare_list_membership(reference, key)
                         dict_test, dict_keys = self.compare_dict_keys(reference, key)
+                        folium_test, map_rendered = self.check_folium_map(reference, key)
                         # If we have passed a structural test, we don't want to capture any of the other fields?
                         if df_test:
                             reference_outs[data_key].append(reference_df_test)
@@ -618,6 +628,8 @@ class IPyNbCell(pytest.Item):
                             reference_outs[data_key].append(list_members)
                         elif dict_test:
                             reference_outs[data_key].append(dict_keys)
+                        elif folium_test:
+                            reference_outs[data_key].append(map_rendered)
                         else:
                             for data_key in reference[key].keys():
                                 # Filter the keys in the SUB-dictionary again:
@@ -648,6 +660,7 @@ class IPyNbCell(pytest.Item):
                         list_test, list_len = self.compare_list_len(testing, key)
                         list_members_test, list_members = self.compare_list_membership(testing, key)
                         dict_test, dict_keys = self.compare_dict_keys(testing, key)
+                        folium_test, map_rendered = self.check_folium_map(testing, key)
                         if df_test:
                             testing_outs[data_key].append(testing_df_test)
                         elif list_test:
@@ -656,10 +669,15 @@ class IPyNbCell(pytest.Item):
                             testing_outs[data_key].append(list_members)
                         elif dict_test:
                             testing_outs[data_key].append(dict_keys)
+                        elif folium_test:
+                            testing_outs[data_key].append(map_rendered)
                         else:
                             for data_key in testing[key].keys():
                                 if data_key not in skip_compare:
                                     testing_outs[data_key].append(self.sanitize(testing[key][data_key]))
+                    # Do we also need to compare the printlines output?
+                    # For example, some cells may have printed output
+                    # as well as object returned output
                     else:
                         # This might include things like key=='stdout' printed messages
                         linecount_test, testing_linecount_test = self.compare_print_lines(testing)
@@ -754,6 +772,11 @@ class IPyNbCell(pytest.Item):
                         self.comparison_traceback.append(
                             cc.OKBLUE
                             + " linecount mismatch '%s'" % key
+                            + cc.FAIL)
+                    if folium_test:
+                        self.comparison_traceback.append(
+                            cc.OKBLUE
+                            + " folium map not returned '%s'" % key
                             + cc.FAIL)
                     if not df_test and not linecount_test and not list_test and not dict_test:
                         self.format_output_compare(key, ref_out, test_out)
