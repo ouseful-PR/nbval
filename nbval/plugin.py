@@ -170,6 +170,8 @@ def pytest_collect_file(path, parent):
 # nbval-test-listlen
 # nbval-test-dictkeys
 # nbval-list-membership
+# nbval-set-membership
+# folium-map
 
 comment_markers = {
     'PYTEST_VALIDATE_IGNORE_OUTPUT': ('check', False),  # For backwards compatibility
@@ -558,6 +560,20 @@ class IPyNbCell(pytest.Item):
                 pass
         return list_members_test, list_members
 
+    def compare_set_membership(self, item, key="data",  data_key="text/plain"):
+        """See if set members are the same."""
+        set_members_test = False
+        set_members = {}
+        if "nbval-set-membership" in self.tags and key in item and data_key in item[key]:
+            try:
+                set_ = eval(item[key][data_key])
+                if isinstance(set_, set):
+                    set_members = set_
+                set_members_test = True
+            except:
+                pass
+        return set_members_test, set_members
+
     def compare_dict_keys(self, item, key="data",  data_key="text/plain"):
         dict_test = False
         dict_keys = None
@@ -604,6 +620,7 @@ class IPyNbCell(pytest.Item):
         df_test = False
         list_test = False
         list_members_test = False
+        set_members_test = False
         dict_test = False
         linecount_test = False
         folium_test = False
@@ -617,6 +634,7 @@ class IPyNbCell(pytest.Item):
                         df_test, data_key, reference_df_test = self.compare_dataframes(reference, key)
                         list_test, list_len = self.compare_list_len(reference, key)
                         list_members_test, list_members = self.compare_list_membership(reference, key)
+                        set_members_test, set_members = self.compare_set_membership(reference, key)
                         dict_test, dict_keys = self.compare_dict_keys(reference, key)
                         folium_test, map_rendered = self.check_folium_map(reference, key)
                         # If we have passed a structural test, we don't want to capture any of the other fields?
@@ -626,6 +644,8 @@ class IPyNbCell(pytest.Item):
                             reference_outs[data_key].append(list_len)
                         elif list_members_test:
                             reference_outs[data_key].append(list_members)
+                        elif set_members_test:
+                            reference_outs[data_key].append(set_members)
                         elif dict_test:
                             reference_outs[data_key].append(dict_keys)
                         elif folium_test:
@@ -659,6 +679,7 @@ class IPyNbCell(pytest.Item):
                         df_test, data_key, testing_df_test = self.compare_dataframes(testing, key)
                         list_test, list_len = self.compare_list_len(testing, key)
                         list_members_test, list_members = self.compare_list_membership(testing, key)
+                        set_members_test, set_members = self.compare_set_membership(testing, key)
                         dict_test, dict_keys = self.compare_dict_keys(testing, key)
                         folium_test, map_rendered = self.check_folium_map(testing, key)
                         if df_test:
@@ -667,6 +688,8 @@ class IPyNbCell(pytest.Item):
                             testing_outs[data_key].append(list_len)
                         elif list_members_test:
                             testing_outs[data_key].append(list_members)
+                        elif set_members_test:
+                            testing_outs[data_key].append(set_members)
                         elif dict_test:
                             testing_outs[data_key].append(dict_keys)
                         elif folium_test:
@@ -760,6 +783,12 @@ class IPyNbCell(pytest.Item):
                         self.comparison_traceback.append(
                             cc.OKBLUE
                             + " list members mismatch '%s'" % key
+                            + f": {ref_out} != {test_out}"
+                            + cc.FAIL)
+                    if set_members_test:
+                        self.comparison_traceback.append(
+                            cc.OKBLUE
+                            + " set members mismatch '%s'" % key
                             + f": {ref_out} != {test_out}"
                             + cc.FAIL)
                     if dict_test:
