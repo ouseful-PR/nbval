@@ -30,6 +30,9 @@ from the main directory. To uninstall:
 
     pip uninstall nbval
 
+For HTML reports, also install:
+
+    pip install pytest-html
 
 ## How it works
 The extension looks through every cell that contains code in an IPython notebook
@@ -60,6 +63,10 @@ To execute this plugin, you need to execute `py.test` with the `nbval` flag
 to differentiate the testing from the usual python files:
 
     py.test --nbval
+
+To generate an HTML report (requires `pytest-html`), add the following to the command:
+
+ --html=report.html --self-contained-html
 
 You can also specify `--nbval-lax`, which runs notebooks and checks for
 errors, but only compares the outputs of cells with a `#NBVAL_CHECK_OUTPUT`
