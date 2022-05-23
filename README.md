@@ -144,6 +144,10 @@ The commands above will execute all the `.ipynb` files and 'pytest' tests in the
 Specify `-p no:python` if you would like to execute notebooks only. Alternatively, you can execute a specific notebook:
 
     py.test --nbval my_notebook.ipynb
+    
+To check numbered notebooks:
+
+    py.test --nbval Part\ 01*/[[:digit:]]*.ipynb
 
 By default, each `.ipynb` file will be executed using the kernel
 specified in its metadata. You can override this behavior by passing
