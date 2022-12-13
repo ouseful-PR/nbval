@@ -1,6 +1,6 @@
 # Py.test plugin for validating Jupyter notebooks
 
-[![Build Status](https://travis-ci.org/computationalmodelling/nbval.svg)](https://travis-ci.org/computationalmodelling/nbval)
+[![Tests](https://github.com/computationalmodelling/nbval/actions/workflows/tests.yml/badge.svg)](https://github.com/computationalmodelling/nbval/actions/workflows/tests.yml)
 [![PyPI Version](https://badge.fury.io/py/nbval.svg)](https://pypi.python.org/pypi/nbval)
 [![Documentation Status](https://readthedocs.org/projects/nbval/badge/)](https://nbval.readthedocs.io/)
 
@@ -124,6 +124,9 @@ nbval is compatible with the pytest-xdist plugin for parallel running of tests. 
 however require the use of the `--dist loadscope` flag to ensure that all cells of one
 notebook are run on the same kernel.
 
+## Documentation
+
+The narrative documentation for nbval can be found at https://nbval.readthedocs.io.
 
 ## Help
 The `py.test` system help can be obtained with `py.test -h`, which will
