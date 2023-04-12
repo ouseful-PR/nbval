@@ -19,7 +19,7 @@ See [`docs/source/index.ipynb`](http://nbviewer.jupyter.org/github/computational
 
 ## This Fork ([`ouseful-PR/nbval@table-test`](https://github.com/ouseful-PR/nbval/tree/table-test))
 
-This fork currently recognises the following additional tags:
+This fork currently recognises the following additional tags to the tags provided by `nbval` (`nbval-ignore-output`, `nbval-raises-exception`)):
 
 - `nbval-variable-output`: some cells return randomised or changeable output that cannot be easily sanitised using a regular eexpression. The output of cells tagged with `nbval-variable-output` are ignored as per `nbval-ignore-output`;
 - `folium-map`: specify that the cell is a folium map output. The cell output type is then checked to see whether it is a folium map object type;
