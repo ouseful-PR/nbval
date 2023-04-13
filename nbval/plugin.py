@@ -604,6 +604,24 @@ class IPyNbCell(pytest.Item):
                 pass
         return dict_test, dict_keys
     
+    def compare_figure_size(self, item, key="data", data_key="text/plain"):
+        # A figure often includes returned text suppressed by a trailing ; at final line end
+        # Typically, we ignore this and just compare image sizes
+        # If we want to compare the text, tag the cell cell with: nbval-figure-text
+        figure_test = False
+        figure_size = None
+        if "nbval-figure" in self.tags and key in item and data_key in item[key]:
+            figure_test = True
+            if 'output_type' in item and item['output_type']=='execute_result':
+                pass
+            print(f"TRY{item} {data_key} {item[key][data_key]}")
+            if "<Figure size" in item[key][data_key]:
+                figure_size = item[key][data_key]
+                print(f"fsize: {figure_size}")
+                
+        return figure_test, figure_size
+            
+        
     def compare_outputs(self, test, ref, skip_compare=None):
         # Use stored skips unless passed a specific value
         skip_compare = skip_compare or self.parent.skip_compare
@@ -634,6 +652,7 @@ class IPyNbCell(pytest.Item):
         #self.comparison_traceback.append(f"OPTIONS: {self.options}")
         #self.comparison_traceback.append(f"TAGS: {self.tags}")
         #self.comparison_traceback.append(f"REFS: {ref}")
+        figure_test = False
         df_test = False
         list_test = False
         list_members_test = False
@@ -647,7 +666,9 @@ class IPyNbCell(pytest.Item):
                 if key not in skip_compare:
                     # Flatten out MIME types from data of display_data and execute_result
                     if key == 'data':
-                        # Check if a dataframe structutral equivalence test is requested
+                        # Check if we have an image
+                        figure_test, figure_size = self.compare_figure_size(reference, key)
+                        # Check if a dataframe structural equivalence test is requested
                         df_test, data_key, reference_df_test = self.compare_dataframes(reference, key)
                         list_test, list_len = self.compare_list_len(reference, key)
                         list_members_test, list_members = self.compare_list_membership(reference, key)
@@ -655,7 +676,10 @@ class IPyNbCell(pytest.Item):
                         dict_test, dict_keys = self.compare_dict_keys(reference, key)
                         folium_test, map_rendered = self.check_folium_map(reference, key)
                         # If we have passed a structural test, we don't want to capture any of the other fields?
-                        if df_test:
+                        if figure_test:
+                            if figure_size:
+                                reference_outs[data_key].append(figure_size)
+                        elif df_test:
                             reference_outs[data_key].append(reference_df_test)
                         elif list_test:
                             reference_outs[data_key].append(list_len)
@@ -692,6 +716,8 @@ class IPyNbCell(pytest.Item):
             for key in testing.keys():
                 if key not in skip_compare:
                     if key == 'data':
+                        # Check if we have an image
+                        figure_test, figure_size = self.compare_figure_size(testing, key)
                         # Check if a dataframe structural equivalence test is requested
                         df_test, data_key, testing_df_test = self.compare_dataframes(testing, key)
                         list_test, list_len = self.compare_list_len(testing, key)
@@ -699,7 +725,10 @@ class IPyNbCell(pytest.Item):
                         set_members_test, set_members = self.compare_set_membership(testing, key)
                         dict_test, dict_keys = self.compare_dict_keys(testing, key)
                         folium_test, map_rendered = self.check_folium_map(testing, key)
-                        if df_test:
+                        if figure_test:
+                            if figure_size:
+                                testing_outs[data_key].append(figure_size)
+                        elif df_test:
                             testing_outs[data_key].append(testing_df_test)
                         elif list_test:
                             testing_outs[data_key].append(list_len)
@@ -788,6 +817,11 @@ class IPyNbCell(pytest.Item):
             for ref_out, test_out in zip(ref_values, test_values):
                 # Compare the individual values
                 if ref_out != test_out:
+                    if figure_test:
+                        self.comparison_traceback.append(
+                            cc.OKBLUE
+                            + " figure mess up '%s'" % key
+                            + cc.FAIL)
                     if df_test:
                         self.format_output_compare_df(key, ref_out, test_out)
                     if list_test:
