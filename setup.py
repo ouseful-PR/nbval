@@ -21,7 +21,7 @@ setup(
         ]
     },
     install_requires = [
-        'pytest >= 2.8',
+        'pytest==7.1.3',
         'jupyter_client',
         'nbformat',
         'ipykernel',
