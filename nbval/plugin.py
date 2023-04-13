@@ -618,7 +618,7 @@ class IPyNbCell(pytest.Item):
             figure_test = True
             if 'output_type' in item and item['output_type']=='execute_result':
                 pass
-            print(f"TRY{item} {data_key} {item[key][data_key]}")
+            #print(f"TRY{item} {data_key} {item[key][data_key]}")
             if "<Figure size" in item[key][data_key]:
                 figure_size = item[key][data_key]
                 print(f"fsize: {figure_size}")
