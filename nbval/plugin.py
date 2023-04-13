@@ -335,9 +335,22 @@ replace: TIMEIT_REPORT
     # or more out, but not if the times are about the same?
     def core_sanitizer(self):
         """Define a core set of sanitisation expressions."""
-        core_regex="""[regex1]
+        core_regex="""
+[regex1]
 regex: <graphviz.files.Source at [^>]*>
 replace: <graphviz.files.Source>
+
+[regex2]
+regex: ^.* per loop \(mean ± std. dev. of \d+ runs, \d+ loop each\)
+replace: TIMING-REPORT
+
+[regex3]
+regex: peak memory: .* MiB, increment: .* MiB
+replace: MEMORY-REPORT
+
+[regex4]
+regex: <seaborn\..* at 0x.*>
+replace: SEABORN-ID
 """
         self.sanitize_patterns.update(get_sanitize_patterns(core_regex))  
 
