@@ -351,6 +351,10 @@ replace: MEMORY-REPORT
 [regex4]
 regex: <seaborn\..* at 0x.*>
 replace: SEABORN-ID
+
+[regex5]
+regex: <pandas.core.groupby.generic.DataFrameGroupBy object at 0x.*>
+replace: PANDAS_GROUP_BY
 """
         self.sanitize_patterns.update(get_sanitize_patterns(core_regex))  
 
