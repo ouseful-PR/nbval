@@ -575,7 +575,10 @@ class IPyNbCell(pytest.Item):
         list_len = None
         if "nbval-test-listlen" in self.tags and key in item and data_key in item[key]:
             try:
-                list_ = eval(item[key][data_key])
+                _tmp = item[key][data_key] if not isinstance(item[key][data_key], list) else "".join(item[key][data_key])
+                #HACK - mongo sanitise
+                _tmp = _tmp.replace("ObjectId", "str") if isinstance(_tmp, str) else _tmp
+                list_ = eval(_tmp)
                 if isinstance(list_, list):
                     list_len = len(list_)
                 list_test = True
@@ -617,7 +620,10 @@ class IPyNbCell(pytest.Item):
         dict_keys = None
         if "nbval-test-dictkeys" in self.tags and key in item and data_key in item[key]:
             try:
-                dict_ = eval(item[key][data_key])
+                _tmp = item[key][data_key] if not isinstance(item[key][data_key], list) else "".join(item[key][data_key])
+                #HACK - mongo sanitise
+                _tmp = _tmp.replace("ObjectId", "str") if isinstance(_tmp, str) else _tmp
+                dict_ = eval(_tmp)
                 if isinstance(dict_, dict):
                     dict_keys = sorted(dict_.keys())
                 dict_test = True
