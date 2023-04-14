@@ -569,6 +569,34 @@ class IPyNbCell(pytest.Item):
             test_out = (df.shape, df.columns.tolist())
         return df_test, data_key, test_out
 
+    def compare_series(self, item, key="data", data_key="text/html"):
+        """Test outputs for series comparison."""
+        def make_series(txt):
+            # Split the data string by lines
+            lines = txt.strip("\n").split("\n")[:-1]
+            index = []
+            values = []
+
+            # Extract index and values from each line
+            for line in lines:
+                # Split each line by whitespace
+                parts = line.split()
+                if parts[0]!="..":
+                    # Extract index and value
+                    index.append(parts[0])
+                    values.append(str(parts[1]))
+
+            # Create a pandas Series
+            return pd.Series(values, index=index)
+
+        series_test = False
+        test_out = ()
+        if "nbval-test-df" in self.tags and key in item and data_key in item[key]:
+            s = make_series(item[key][data_key])
+            series_test = True
+            test_out = len(s)
+        return series_test, test_out
+
     def compare_print_lines(self, item, key="stdout"):
         """Test line count similarity in print output."""
         linecount_test = False
@@ -715,6 +743,7 @@ class IPyNbCell(pytest.Item):
                         set_members_test, set_members = self.compare_set_membership(reference, key)
                         dict_test, dict_keys = self.compare_dict_keys(reference, key)
                         folium_test, map_rendered = self.check_folium_map(reference, key)
+                        series_test, series_len = self.compare_series(reference, key)
                         # If we have passed a structural test, we don't want to capture any of the other fields?
                         if figure_test:
                             if figure_size:
@@ -731,6 +760,9 @@ class IPyNbCell(pytest.Item):
                             reference_outs[data_key].append(dict_keys)
                         elif folium_test:
                             reference_outs[data_key].append(map_rendered)
+                        elif series_test:
+                            reference_outs[data_key].append(series_len)
+                            
                         else:
                             for data_key in reference[key].keys():
                                 # Filter the keys in the SUB-dictionary again:
@@ -765,6 +797,7 @@ class IPyNbCell(pytest.Item):
                         set_members_test, set_members = self.compare_set_membership(testing, key)
                         dict_test, dict_keys = self.compare_dict_keys(testing, key)
                         folium_test, map_rendered = self.check_folium_map(testing, key)
+                        series_test, series_len = self.compare_series(reference, key)
                         if figure_test:
                             if figure_size:
                                 testing_outs[data_key].append(figure_size)
@@ -780,6 +813,8 @@ class IPyNbCell(pytest.Item):
                             testing_outs[data_key].append(dict_keys)
                         elif folium_test:
                             testing_outs[data_key].append(map_rendered)
+                        elif series_test:
+                            testing_outs[data_key].append(series_len)
                         else:
                             for data_key in testing[key].keys():
                                 if data_key not in skip_compare:
@@ -897,6 +932,12 @@ class IPyNbCell(pytest.Item):
                         self.comparison_traceback.append(
                             cc.OKBLUE
                             + " folium map not returned '%s'" % key
+                            + cc.FAIL)
+                    if series_test:
+                        self.comparison_traceback.append(
+                            cc.OKBLUE
+                            + " Series length mismatch '%s'" % key
+                            + f": {ref_out} != {test_out}"
                             + cc.FAIL)
                     if not df_test and not linecount_test and not list_test and not dict_test:
                         self.format_output_compare(key, ref_out, test_out)
