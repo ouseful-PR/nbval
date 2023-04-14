@@ -421,6 +421,8 @@ replace: RDF_GRAPH
         """
 
         self.nb = nbformat.read(str(self.fspath), as_version=4)
+        if "nbval_nb_ignore" in self.nb["metadata"] and self.nb["metadata"]["nbval_nb_ignore"]:
+            return
 
         # Start the cell count
         cell_num = 1
