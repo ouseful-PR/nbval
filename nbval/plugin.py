@@ -372,6 +372,14 @@ replace: MONGO_CURSOR
 regex: <pymongo.results.UpdateResult at 0x[a-f0-9]*>
 replace: MONGO_UPDATE
 
+[regex10]
+regex: <map at 0x[a-f0-9]*>
+replace: PYTHON_MAP
+
+[regex11]
+regex: <Graph identifier=.*>
+replace: RDF_GRAPH
+
 """
         self.sanitize_patterns.update(get_sanitize_patterns(core_regex))  
 
