@@ -591,7 +591,7 @@ class IPyNbCell(pytest.Item):
 
         series_test = False
         test_out = ()
-        if "nbval-test-df" in self.tags and key in item and data_key in item[key]:
+        if "nbval-test-series" in self.tags and key in item and data_key in item[key]:
             s = make_series(item[key][data_key])
             series_test = True
             test_out = len(s)

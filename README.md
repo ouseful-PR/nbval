@@ -30,6 +30,7 @@ This fork currently recognises the following additional tags to the tags provide
 - `nbval-set-membership` tag: attempt to cast cell output to a set, then compare membership;
 - `nbval-test-dictkeys` tag: attempt to cast cell output to a dict, then perform strutural equivalence tests *(currently limited to check that top-level dictionary keys are equivalent)();
 - `nbval-figure` tag: `matplotlib` returns text labels as last line output so we need to defend against that. A figure tag is useful... [See `nb_workflow_tools` for a tool to autotag pre-run notebook cells with an `nbval-figure` tag, if appropriate.]
+- `nbval-test-series` tag: test for series, compare series length
 
 These tags provide a way of weakening test equivalence in a way that still allows useful tests to be performed. This is particularly useful where instructional notebooks are being tested that do not return strictly reproducible cell outputs, but where the shape or type of the returned elements from a particular cell should be consistent.
 
