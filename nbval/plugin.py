@@ -341,7 +341,7 @@ regex: <graphviz.files.Source at [^>]*>
 replace: <graphviz.files.Source>
 
 [regex2]
-regex: ^.* per loop \(mean ± std. dev. of \d+ runs, \d+ loop each\)
+regex: ^.* per loop .mean ± std. dev. of [0-9]+ runs, [0-9]+ loop each.
 replace: TIMING-REPORT
 
 [regex3]
