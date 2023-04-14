@@ -349,12 +349,29 @@ regex: peak memory: .* MiB, increment: .* MiB
 replace: MEMORY-REPORT
 
 [regex4]
-regex: <seaborn\..* at 0x.*>
+regex: <seaborn\..* at 0x[a-f0-9]*>
 replace: SEABORN-ID
 
 [regex5]
-regex: <pandas.core.groupby.generic.DataFrameGroupBy object at 0x.*>
+regex: <pandas.core.groupby.generic.DataFrameGroupBy object at 0x[a-f0-9]*>
 replace: PANDAS_GROUP_BY
+
+[regex6]
+regex: <pymongo.results.InsertOneResult at 0x[a-f0-9]*>
+replace: MONGO_INSERT_ONE
+
+[regex7]
+regex: <pymongo.results.InsertManyResult at 0x[a-f0-9]*>
+replace: MONGO_INSERT_MANY
+
+[regex8]
+regex: <pymongo.cursor.Cursor at 0x[a-f0-9]*>
+replace: MONGO_CURSOR
+
+[regex9]
+regex: <pymongo.results.UpdateResult at 0x[a-f0-9]*>
+replace: MONGO_UPDATE
+
 """
         self.sanitize_patterns.update(get_sanitize_patterns(core_regex))  
 
