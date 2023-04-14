@@ -578,16 +578,23 @@ class IPyNbCell(pytest.Item):
             linecount_test = True
         return linecount_test, test_out
 
+    def _clean_mongo_hack(self, txt):
+        """Hack to cope with mongo elements."""
+        _tmp = txt if not isinstance(txt, list) else "".join(txt)
+        _tmp = _tmp.replace("ObjectId", "str").replace("nan", "None") if isinstance(_tmp, str) else _tmp
+        return _tmp
+
+    # The following also compares tuples
     def compare_list_len(self, item, key="data",  data_key="text/plain"):
         list_test = False
         list_len = None
-        if "nbval-test-listlen" in self.tags and key in item and data_key in item[key]:
+
+        if any(x in self.tags for x in ["nbval-test-listlen", "nbval-test-tuple"]) and key in item and data_key in item[key]:
             try:
-                _tmp = item[key][data_key] if not isinstance(item[key][data_key], list) else "".join(item[key][data_key])
-                #HACK - mongo sanitise
-                _tmp = _tmp.replace("ObjectId", "str") if isinstance(_tmp, str) else _tmp
+                _tmp = self._clean_mongo_hack(item[key][data_key])
                 list_ = eval(_tmp)
-                if isinstance(list_, list):
+                ltype = tuple if "nbval-test-tuple" in self.tags else list
+                if isinstance(list_, ltype):
                     list_len = len(list_)
                 list_test = True
             except:
@@ -600,7 +607,8 @@ class IPyNbCell(pytest.Item):
         list_members = []
         if "nbval-list-membership" in self.tags and key in item and data_key in item[key]:
             try:
-                list_ = eval(item[key][data_key])
+                _tmp = self._clean_mongo_hack(item[key][data_key])
+                list_ = eval(_tmp)
                 if isinstance(list_, list):
                     list_.sort()
                     list_members = list_
@@ -628,9 +636,7 @@ class IPyNbCell(pytest.Item):
         dict_keys = None
         if "nbval-test-dictkeys" in self.tags and key in item and data_key in item[key]:
             try:
-                _tmp = item[key][data_key] if not isinstance(item[key][data_key], list) else "".join(item[key][data_key])
-                #HACK - mongo sanitise
-                _tmp = _tmp.replace("ObjectId", "str") if isinstance(_tmp, str) else _tmp
+                _tmp = self._clean_mongo_hack(item[key][data_key])
                 dict_ = eval(_tmp)
                 if isinstance(dict_, dict):
                     dict_keys = sorted(dict_.keys())
@@ -655,8 +661,7 @@ class IPyNbCell(pytest.Item):
                 print(f"fsize: {figure_size}")
                 
         return figure_test, figure_size
-            
-        
+
     def compare_outputs(self, test, ref, skip_compare=None):
         # Use stored skips unless passed a specific value
         skip_compare = skip_compare or self.parent.skip_compare
