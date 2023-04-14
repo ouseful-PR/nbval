@@ -728,6 +728,7 @@ class IPyNbCell(pytest.Item):
         dict_test = False
         linecount_test = False
         folium_test = False
+        series_test = False
         for reference in ref:
             for key in reference.keys():
                 # We discard the keys from the skip_compare list:
