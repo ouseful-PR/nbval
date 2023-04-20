@@ -79,10 +79,10 @@ def pytest_addoption(parser):
     group.addoption('--nbval-test-timeit', action='store_false',
                     help="Ignore %%timeit magic cells output")
 
-    group.addoption('--nbval-skip-timeit', action='store_true',
+    group.addoption('--nbval-skip-timeit', action='store_false',
                     help="Skip %%timeit magic cells output; this overrides --test-timeit")
 
-    group.addoption('--nbval-skip-memit', action='store_true',
+    group.addoption('--nbval-skip-memit', action='store_false',
                     help="Skip %%memit magic cells output; this overrides --test-memit")
 
     group.addoption('--nbval-lax', action='store_true',
