@@ -4,46 +4,42 @@
 [![PyPI Version](https://badge.fury.io/py/nbval.svg)](https://pypi.python.org/pypi/nbval)
 [![Documentation Status](https://readthedocs.org/projects/nbval/badge/)](https://nbval.readthedocs.io/)
 
-The plugin adds functionality to py.test to recognise and collect Jupyter
-notebooks. The intended purpose of the tests is to determine whether execution
-of the stored inputs match the stored outputs of the `.ipynb` file. Whilst also
-ensuring that the notebooks are running without errors.
+The plugin adds functionality to py.test to recognise and collect Jupyter notebooks. The intended purpose of the tests is to determine whether execution of the stored inputs match the stored outputs of the `.ipynb` file. Whilst also ensuring that the notebooks are running without errors.
 
-The tests were designed to ensure that Jupyter notebooks (especially those for
-reference and documentation), are executing consistently.
+The tests were designed to ensure that Jupyter notebooks (especially those for reference and documentation), are executing consistently.
 
-Each cell is taken as a test, a cell that doesn't reproduce the expected
-output will fail.
+Each cell is taken as a test, a cell that doesn't reproduce the expected output will fail.
 
 See [`docs/source/index.ipynb`](http://nbviewer.jupyter.org/github/computationalmodelling/nbval/blob/HEAD/docs/source/index.ipynb) for the full documentation.
 
 ## This Fork ([`ouseful-PR/nbval@table-test`](https://github.com/ouseful-PR/nbval/tree/table-test))
 
-We can ignore a notebook for testing purposs by setting `"nbval_nb_ignore": true` in notebook metadata.
+We can ignore a notebook for testing purposes by setting `"nbval_nb_ignore": true` in notebook metadata.
 
 This fork currently recognises the following additional tags to the tags provided by `nbval` (`nbval-skip`, `nbval-ignore-output`, `nbval-raises-exception`)):
 
-- `nbval-variable-output`: some cells return randomised or changeable output that cannot be easily sanitised using a regular eexpression. The output of cells tagged with `nbval-variable-output` are ignored as per `nbval-ignore-output`;
+- `nbval-variable-output`: some cells return randomised or changeable output that cannot be easily sanitised using a regular expression. The output of cells tagged with `nbval-variable-output` are ignored as per `nbval-ignore-output`;
 - `folium-map`: specify that the cell is a folium map output. The cell output type is then checked to see whether it is a folium map object type;
 - `nbval-test-linecount`: where cells contain printed output that changes in content but not structure (eg the same number of lines are printed on each run), the `nbval-test-linecount` will check that the same number of lines are printed by a cell in the test notebook as in the reference notebook;
-- `nbval-test-df` tag: attempt to cast a cell outut to a *pandas* dataframe, then check that the test dataframe has a similar structure to the reference dataframe, even if the content differs. Structural tests currently include: shape test (same number of rows and columns; common column names test);
+- `nbval-test-df` tag: attempt to cast a cell output to a *pandas* dataframe, then check that the test dataframe has a similar structure to the reference dataframe, even if the content differs. Structural tests currently include: shape test (same number of rows and columns; common column names test);
 - `nbval-test-listlen` tag: attempt to cast a cell output to a list, then compare the length of the lists;
 - `nbval-list-membership` tag: attempt to cast cell output to a list and then see whether the list elements are the same, irrespective of order *(this currently fails to handle nested lists?)*;
 - `nbval-set-membership` tag: attempt to cast cell output to a set, then compare membership;
-- `nbval-test-dictkeys` tag: attempt to cast cell output to a dict, then perform strutural equivalence tests *(currently limited to check that top-level dictionary keys are equivalent)();
-- `nbval-figure` tag: `matplotlib` returns text labels as last line output so we need to defend against that. A figure tag is useful... [See `nb_workflow_tools` for a tool to autotag pre-run notebook cells with an `nbval-figure` tag, if appropriate.]
+- `nbval-test-dictkeys` tag: attempt to cast cell output to a dict, then perform structural equivalence tests *(currently limited to check that top-level dictionary keys are equivalent)*;
+- `nbval-figure` tag: `matplotlib` returns text labels as last line output so we need to defend against that. A figure tag is useful... [See [`nb_workflow_tools`](https://github.com/innovationOUtside/nb_workflow_tools) for a tool to autotag pre-run notebook cells with an `nbval-figure` tag, if appropriate.]
 - `nbval-test-series` tag: test for series, compare series length
 
-The command line switchs `--nbval-skip-timeit` and `--nbval-skip-memit` can be used to skip lines run with `%timeit` or `%memit` line magics (the line is commented out; commands over multiple lines will error...). An `nbval-run-all` tag can be added to a cell to prevent a magicked line being commented out (if for example we need he line to write a file...)
+The command line switches `--nbval-skip-timeit` and `--nbval-skip-memit` can be used to skip lines run with `%timeit` or `%memit` line magics (the line is commented out; commands over multiple lines will error...). An `nbval-run-all` tag can be added to a cell to prevent a magicked line being commented out (if for example we need the line to write a file...)
 
+The cell tags provide a way of weakening test equivalence in a way that still allows useful tests to be performed. This is particularly useful where instructional notebooks are being tested that do not return strictly reproducible cell outputs, but where the shape or type of the returned elements from a particular cell should be consistent.
 
-These tags provide a way of weakening test equivalence in a way that still allows useful tests to be performed. This is particularly useful where instructional notebooks are being tested that do not return strictly reproducible cell outputs, but where the shape or type of the returned elements from a particular cell should be consistent.
-
-These tests are being developed as part of an ongoing process to support the use and deployment of notebook based teaching materials over several years of course presentation in a distance education context. The notebooks themselves are intended to remain largely unchanged over time, but the Docker container based environment is updated on a per course presentation basis. Previously run notebooks are automatically tested in updated Docker containers to ensure that outputs are consistent with previous runs, if not stricly identical to them. Warnings and errors arising from updates will also be captured.
+These tests are being developed as part of an ongoing process to support the use and deployment of notebook based teaching materials over several years of course presentation in a distance education context. The notebooks themselves are intended to remain largely unchanged over time, but the Docker container based environment is updated on a per course presentation basis. Previously run notebooks are automatically tested in updated Docker containers to ensure that outputs are consistent with previous runs, if not strictly identical to them. Warnings and errors arising from updates will also be captured.
 
 A regular expression sanitiser can also be used to reduce the number of cell run failures by rewriting conventionally variable content.
 
 ### Useful Sanitiser Regular Expressions
+
+NB sanitiser code is embedded in this forked version of `nbval`.
 
 *The first line is IPython magic that would write the remaining contents to the specified file. Omit that first line if you are copying and pasting the regexes for your own sanitiser file.*
 
