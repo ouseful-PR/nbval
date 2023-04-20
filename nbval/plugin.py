@@ -277,7 +277,7 @@ class IPyNbFile(pytest.File):
             'application/vnd.jupyter.widget-view+json'  # Model IDs are random
         )
         if not config.option.nbdime:
-            self.skip_compare = self.skip_compare + ('image/png', 'image/jpeg')
+            self.skip_compare = self.skip_compare + ('image/png', 'image/jpeg', 'image/svg+xml')
 
     kernel = None
 
@@ -561,7 +561,7 @@ class IPyNbCell(pytest.Item):
     def reportinfo(self):
         description = "%s::Code cell %d" % (self.fspath.relto(self.config.rootdir), self.cell_num)
         return self.fspath, 0, description
-
+        
     def check_folium_map(self, item, key="data", data_key="text/plain"):
         """Check that we have a folium map flavoured output."""
         folium_test = False
@@ -688,7 +688,7 @@ class IPyNbCell(pytest.Item):
     def compare_figure_size(self, item, key="data", data_key="text/plain"):
         # A figure often includes returned text suppressed by a trailing ; at final line end
         # Typically, we ignore this and just compare image sizes
-        # If we want to compare the text, tag the cell cell with: nbval-figure-text
+        # If we want to compare the text, tag the cell with: nbval-figure-text
         figure_test = False
         figure_size = None
         if "nbval-figure" in self.tags and key in item and data_key in item[key]:
@@ -775,8 +775,7 @@ class IPyNbCell(pytest.Item):
                         elif folium_test:
                             reference_outs[data_key].append(map_rendered)
                         elif series_test:
-                            reference_outs[data_key].append(series_len)
-                            
+                            reference_outs[data_key].append(series_len)         
                         else:
                             for data_key in reference[key].keys():
                                 # Filter the keys in the SUB-dictionary again:
