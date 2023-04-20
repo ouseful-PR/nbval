@@ -489,8 +489,8 @@ replace: RDF_GRAPH
 
                 # If we have an output suppressor (;) at end of last line
                 # append a pass instruction to the cell to mock the behaviour
-                #if cell.source.strip().endswith(";"):
-                #    cell.source = cell.source+"\npass"
+                if cell.source.strip().endswith(";") and not cell.source.startswith("%%"):
+                    cell.source = cell.source+"\npass"
 
                 options.setdefault('check', self.compare_outputs)
                 name = 'Code cell ' + str(cell_num)
