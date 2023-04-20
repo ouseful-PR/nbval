@@ -1299,9 +1299,9 @@ class IPyNbCell(pytest.Item):
             s = re.sub(regex, replace, s)
 
         if self.parent.config.option.nbval_skip_timeit:
-            s = s.replace("TIMEIT-REPORT", "")
+            s = re.sub("TIMEIT-REPORT\n?", "", s) #s.replace("TIMEIT-REPORT", "")
         if self.parent.config.option.nbval_skip_memit:
-            s = s.replace("MEMIT-REPORT", "MEMIT-REPORT")
+            s = re.sub("MEMIT-REPORT\n?", "", s) #s.replace("MEMIT-REPORT", "MEMIT-REPORT")
 
         return s
 
