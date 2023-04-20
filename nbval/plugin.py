@@ -699,10 +699,9 @@ class IPyNbCell(pytest.Item):
             if "<Figure size" in item[key][data_key]:
                 figure_size = item[key][data_key]
                 print(f"fsize: {figure_size}")
-                
+         
         return figure_test, figure_size
 
-    # TO DO - how to handle 'image/svg+xml'
     def compare_outputs(self, test, ref, skip_compare=None):
         # Use stored skips unless passed a specific value
         skip_compare = skip_compare or self.parent.skip_compare
