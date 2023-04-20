@@ -482,6 +482,11 @@ replace: RDF_GRAPH
                                 options.update({"check": False})
                             self.nb.cells[i].source = "\n".join([c for c in cell.source.split("\n") if not c.strip().startswith("%memit")])
 
+                # If we have an output suppressor (;) at end of last line
+                # append a pass instruction to the cell to mock the behaviour
+                if cell.source[-1].strip().endswith(";"):
+                        cell.source = cell.source.extend(["\n","pass"])
+                
                 options.setdefault('check', self.compare_outputs)
                 name = 'Code cell ' + str(cell_num)
                 # https://docs.pytest.org/en/stable/deprecations.html#node-construction-changed-to-node-from-parent
