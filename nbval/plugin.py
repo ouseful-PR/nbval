@@ -468,25 +468,26 @@ replace: RDF_GRAPH
                 if self.parent.config.option.nbval_skip_memit:
                     if cell.source.startswith("%%memit"):
                         options.update({"skip": True})
-                        
-                # If last line is magic, ignore output
+
+                # If line is timeit or memit magic,
+                # we might want to skip the memit/timeit operation
+                # But we preserve the action
                 if self.parent.config.option.nbval_skip_timeit or self.parent.config.option.nbval_skip_memit:
                     cell_lines = [c for c in cell.source.split("\n") if c.strip()]
-                    if cell_lines:
+                    for ci, cl in enumerate(cell_lines):
                         if self.parent.config.option.nbval_skip_timeit:
-                            if cell_lines[-1].startswith("%time"):
-                                options.update({"check": False})
-                            self.nb.cells[i].source = "\n".join([c for c in cell.source.split("\n") if not c.strip().startswith("%timeit")])
+                            if cl.lstrip().startswith("%timeit "):
+                                cell_lines[ci] = cl.replace("%timeit ", "")
                         if self.parent.config.option.nbval_skip_memit:
-                            if cell_lines[-1].startswith("%memit"):
-                                options.update({"check": False})
-                            self.nb.cells[i].source = "\n".join([c for c in cell.source.split("\n") if not c.strip().startswith("%memit")])
+                            if cl.lstrip().startswith("%memit "):
+                                cell_lines[ci] = cl.replace("%memit ", "")
+                    cell.source = "\n".join(cell_lines)
 
                 # If we have an output suppressor (;) at end of last line
                 # append a pass instruction to the cell to mock the behaviour
                 if cell.source.strip().endswith(";"):
                     cell.source = cell.source+"\npass"
-                
+
                 options.setdefault('check', self.compare_outputs)
                 name = 'Code cell ' + str(cell_num)
                 # https://docs.pytest.org/en/stable/deprecations.html#node-construction-changed-to-node-from-parent
