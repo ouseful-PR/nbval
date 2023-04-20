@@ -32,6 +32,8 @@ This fork currently recognises the following additional tags to the tags provide
 - `nbval-figure` tag: `matplotlib` returns text labels as last line output so we need to defend against that. A figure tag is useful... [See `nb_workflow_tools` for a tool to autotag pre-run notebook cells with an `nbval-figure` tag, if appropriate.]
 - `nbval-test-series` tag: test for series, compare series length
 
+The command line switchs `--nbval-skip-timeit` and `--nbval-skip-memit` can be used to skip lines run with `%timeit` or `%memit` line magics (the line is commented out; commands over multiple lines will error...). An `nbval-run-all` tag can be added to a cell to prevent a magicked line being commented out (if for example we need he line to write a file...)
+
 These tags provide a way of weakening test equivalence in a way that still allows useful tests to be performed. This is particularly useful where instructional notebooks are being tested that do not return strictly reproducible cell outputs, but where the shape or type of the returned elements from a particular cell should be consistent.
 
 These tests are being developed as part of an ongoing process to support the use and deployment of notebook based teaching materials over several years of course presentation in a distance education context. The notebooks themselves are intended to remain largely unchanged over time, but the Docker container based environment is updated on a per course presentation basis. Previously run notebooks are automatically tested in updated Docker containers to ensure that outputs are consistent with previous runs, if not stricly identical to them. Warnings and errors arising from updates will also be captured.
