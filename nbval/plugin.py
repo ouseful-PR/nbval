@@ -325,7 +325,7 @@ replace: Wall time: WALLTIME
 
 [regext3]
 regex: .* per loop \(mean ± std. dev. of .* runs, .* loops each\)
-replace: TIMEIT_REPORT
+replace: TIMEIT-REPORT
 """
         self.sanitize_patterns.update(get_sanitize_patterns(timeit_regex)) 
 
@@ -342,11 +342,11 @@ replace: <graphviz.files.Source>
 
 [regex2]
 regex: ^.* per loop .mean ± std. dev. of [0-9]+ runs, [0-9]+ loop each.
-replace: TIMING-REPORT
+replace: TIMEIT-REPORT
 
 [regex3]
 regex: peak memory: .* MiB, increment: .* MiB
-replace: MEMORY-REPORT
+replace: MEMIT-REPORT
 
 [regex4]
 regex: <seaborn\..* at 0x[a-f0-9]*>
@@ -471,16 +471,19 @@ replace: RDF_GRAPH
 
                 # If line is timeit or memit magic,
                 # we might want to skip the memit/timeit operation
-                # But we preserve the action
+                # But what if we want to preserve the action?
+                # Note that timeit might take args, eg -r 2
+                # What if the function is actually doing something useful?
+                # What if timeit is over sveral lines?
                 if self.parent.config.option.nbval_skip_timeit or self.parent.config.option.nbval_skip_memit:
                     cell_lines = [c for c in cell.source.split("\n") if c.strip()]
                     for ci, cl in enumerate(cell_lines):
                         if self.parent.config.option.nbval_skip_timeit:
                             if cl.lstrip().startswith("%timeit "):
-                                cell_lines[ci] = cl.replace("%timeit ", "")
+                                cell_lines[ci] = cl.replace("%timeit ", "#%timeit")
                         if self.parent.config.option.nbval_skip_memit:
                             if cl.lstrip().startswith("%memit "):
-                                cell_lines[ci] = cl.replace("%memit ", "")
+                                cell_lines[ci] = cl.replace("%memit ", "#%memit ")
                     cell.source = "\n".join(cell_lines)
 
                 # If we have an output suppressor (;) at end of last line
@@ -1294,6 +1297,12 @@ class IPyNbCell(pytest.Item):
         """
         for regex, replace in self.parent.sanitize_patterns.items():
             s = re.sub(regex, replace, s)
+
+        if self.parent.config.option.nbval_skip_timeit:
+            s = s.replace("TIMEIT-REPORT", "")
+        if self.parent.config.option.nbval_skip_memit:
+            s = s.replace("MEMIT-REPORT", "MEMIT-REPORT")
+
         return s
 
 
