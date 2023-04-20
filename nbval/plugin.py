@@ -475,7 +475,8 @@ replace: RDF_GRAPH
                 # Note that timeit might take args, eg -r 2
                 # What if the function is actually doing something useful?
                 # What if timeit is over sveral lines?
-                if self.parent.config.option.nbval_skip_timeit or self.parent.config.option.nbval_skip_memit:
+                # he nbval-run-all means we don't mask running the memit/timeit
+                if "nbval-run-all" not in cell.tags and self.parent.config.option.nbval_skip_timeit or self.parent.config.option.nbval_skip_memit:
                     cell_lines = [c for c in cell.source.split("\n") if c.strip()]
                     for ci, cl in enumerate(cell_lines):
                         if self.parent.config.option.nbval_skip_timeit:
