@@ -19,6 +19,8 @@ See [`docs/source/index.ipynb`](http://nbviewer.jupyter.org/github/computational
 
 ## This Fork ([`ouseful-PR/nbval@table-test`](https://github.com/ouseful-PR/nbval/tree/table-test))
 
+We can ignore a notebook for testing purposs by setting `"nbval_nb_ignore": true` in notebook metadata.
+
 This fork currently recognises the following additional tags to the tags provided by `nbval` (`nbval-skip`, `nbval-ignore-output`, `nbval-raises-exception`)):
 
 - `nbval-variable-output`: some cells return randomised or changeable output that cannot be easily sanitised using a regular eexpression. The output of cells tagged with `nbval-variable-output` are ignored as per `nbval-ignore-output`;
@@ -33,6 +35,7 @@ This fork currently recognises the following additional tags to the tags provide
 - `nbval-test-series` tag: test for series, compare series length
 
 The command line switchs `--nbval-skip-timeit` and `--nbval-skip-memit` can be used to skip lines run with `%timeit` or `%memit` line magics (the line is commented out; commands over multiple lines will error...). An `nbval-run-all` tag can be added to a cell to prevent a magicked line being commented out (if for example we need he line to write a file...)
+
 
 These tags provide a way of weakening test equivalence in a way that still allows useful tests to be performed. This is particularly useful where instructional notebooks are being tested that do not return strictly reproducible cell outputs, but where the shape or type of the returned elements from a particular cell should be consistent.
 
