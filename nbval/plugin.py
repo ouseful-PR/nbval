@@ -480,10 +480,10 @@ replace: RDF_GRAPH
                     for ci, cl in enumerate(cell_lines):
                         if self.parent.config.option.nbval_skip_timeit:
                             if cl.lstrip().startswith("%timeit "):
-                                cell_lines[ci] = cl.replace("%timeit ", "#%timeit")
+                                cell_lines[ci] = cl.replace("%timeit ", "print("")#%timeit")
                         if self.parent.config.option.nbval_skip_memit:
                             if cl.lstrip().startswith("%memit "):
-                                cell_lines[ci] = cl.replace("%memit ", "#%memit ")
+                                cell_lines[ci] = cl.replace("%memit ", "print("")#%memit ")
                     cell.source = "\n".join(cell_lines)
 
                 # If we have an output suppressor (;) at end of last line
