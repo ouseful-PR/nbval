@@ -489,8 +489,8 @@ replace: RDF_GRAPH
 
                 # If we have an output suppressor (;) at end of last line
                 # append a pass instruction to the cell to mock the behaviour
-                if cell.source.strip().endswith(";"):
-                    cell.source = cell.source+"\npass"
+                #if cell.source.strip().endswith(";"):
+                #    cell.source = cell.source+"\npass"
 
                 options.setdefault('check', self.compare_outputs)
                 name = 'Code cell ' + str(cell_num)
@@ -702,6 +702,7 @@ class IPyNbCell(pytest.Item):
                 
         return figure_test, figure_size
 
+    # TO DO - how to handle 'image/svg+xml'
     def compare_outputs(self, test, ref, skip_compare=None):
         # Use stored skips unless passed a specific value
         skip_compare = skip_compare or self.parent.skip_compare
