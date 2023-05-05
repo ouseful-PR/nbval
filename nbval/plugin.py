@@ -1303,7 +1303,7 @@ class IPyNbCell(pytest.Item):
         if self.parent.config.option.nbval_skip_memit:
             s = re.sub("MEMIT-REPORT", "", s) #s.replace("MEMIT-REPORT", "MEMIT-REPORT")
 
-        return s
+        return s.strip()
 
 
 carriagereturn_pat = re.compile(r'^.*\r(?=[^\n])', re.MULTILINE)
