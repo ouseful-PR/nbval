@@ -14,6 +14,8 @@ See [`docs/source/index.ipynb`](http://nbviewer.jupyter.org/github/computational
 
 ## This Fork ([`ouseful-PR/nbval@table-test`](https://github.com/ouseful-PR/nbval/tree/table-test))
 
+Example usage: `py.test --nbval --nbval-skip-timeit  --nbval-skip-memit Part\ 05*`
+
 We can ignore a notebook for testing purposes by setting `"nbval_nb_ignore": true` in notebook metadata.
 
 This fork currently recognises the following additional tags to the tags provided by `nbval` (`nbval-skip`, `nbval-ignore-output`, `nbval-raises-exception`)):
