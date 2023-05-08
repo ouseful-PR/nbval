@@ -1294,7 +1294,13 @@ class IPyNbCell(pytest.Item):
     def sanitize(self, s):
         """sanitize a string for comparison.
         """
+        
         if not isinstance(s, str):
+            if isinstance(s, list):
+                try:
+                    s = [re.sub("\s+\n", "\n", _s) for _s in s]
+                except:
+                    pass
             return s
 
         """
