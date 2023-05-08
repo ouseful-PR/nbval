@@ -1296,11 +1296,6 @@ class IPyNbCell(pytest.Item):
         """
         
         if not isinstance(s, str):
-            if isinstance(s, list):
-                try:
-                    s = [re.sub("\s+[\n\r]+", "\n", _s) for _s in s]
-                except:
-                    pass
             return s
 
         """
@@ -1312,8 +1307,9 @@ class IPyNbCell(pytest.Item):
         for regex, replace in self.parent.sanitize_patterns.items():
             s = re.sub(regex, replace, s)
 
-        # Remove empty lines
-        result = re.sub(r"^\s*$[\n\r]*", "", s, flags=re.MULTILINE)
+        # Remove empty lines and trailing whitespace
+        s = re.sub(r"^\s*$[\n\r]*", "", s, flags=re.MULTILINE)
+        s = re.sub(r"\s*$[\n\r]*", "\n", s, flags=re.MULTILINE)
 
         if self.parent.config.option.nbval_skip_timeit:
             s = re.sub("TIMEIT-REPORT", "", s) #s.replace("TIMEIT-REPORT", "")
