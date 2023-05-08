@@ -380,6 +380,10 @@ replace: PYTHON_MAP
 regex: <Graph identifier=.*>
 replace: RDF_GRAPH
 
+[regex12]
+regex: <graphviz.sources.Source at [^>]*>
+replace: <graphviz.sources.Source>
+
 """
         self.sanitize_patterns.update(get_sanitize_patterns(core_regex))  
 
