@@ -1029,8 +1029,8 @@ class IPyNbCell(pytest.Item):
             if new_expl:
                 new_expl = ['  %s' % line.replace("\n", "\\n") for line in new_expl]
                 self.comparison_traceback.append("\n assert reference_output == test_output failed:\n")
-                self.comparison_traceback.append(f"\n {type(left)}  {type(right)}\n")
-                self.comparison_traceback.append(f"\n{str(left)} AND {str(right)}\n")
+                if left and not right:
+                    self.comparison_traceback.append("\n (No output generated?)\n")
                 self.comparison_traceback.extend(new_expl)
                 break
         else:
