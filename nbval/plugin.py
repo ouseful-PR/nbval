@@ -384,6 +384,10 @@ replace: RDF_GRAPH
 regex: <graphviz.sources.Source at [^>]*>
 replace: <graphviz.sources.Source>
 
+[regex13]
+regex: \s+\n
+replace: \n
+
 """
         self.sanitize_patterns.update(get_sanitize_patterns(core_regex))  
 
@@ -1301,6 +1305,9 @@ class IPyNbCell(pytest.Item):
         """
         for regex, replace in self.parent.sanitize_patterns.items():
             s = re.sub(regex, replace, s)
+
+        # Remove empty lines
+        result = re.sub(r"^\s*$[\n\r]*", "", s, flags=re.MULTILINE)
 
         if self.parent.config.option.nbval_skip_timeit:
             s = re.sub("TIMEIT-REPORT", "", s) #s.replace("TIMEIT-REPORT", "")
