@@ -385,7 +385,7 @@ regex: <graphviz.sources.Source at [^>]*>
 replace: <graphviz.sources.Source>
 
 [regex13]
-regex: \s+\n
+regex: \s+[\n\r]+
 replace: \n
 
 """
@@ -1298,7 +1298,7 @@ class IPyNbCell(pytest.Item):
         if not isinstance(s, str):
             if isinstance(s, list):
                 try:
-                    s = [re.sub("\s+\n", "\n", _s) for _s in s]
+                    s = [re.sub("\s+[\n\r]+", "\n", _s) for _s in s]
                 except:
                     pass
             return s
