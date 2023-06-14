@@ -817,7 +817,7 @@ class IPyNbCell(pytest.Item):
                         set_members_test, set_members = self.compare_set_membership(testing, key)
                         dict_test, dict_keys = self.compare_dict_keys(testing, key)
                         folium_test, map_rendered = self.check_folium_map(testing, key)
-                        series_test, series_len = self.compare_series(reference, key)
+                        series_test, series_len = self.compare_series(testing, key)
                         if figure_test:
                             if figure_size:
                                 testing_outs[data_key].append(figure_size)
