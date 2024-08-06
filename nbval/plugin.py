@@ -273,7 +273,7 @@ class IPyNbFile(pytest.File):
             'prompt_number',
             'output_type',
             'name',
-            'execution_count',
+            'execution_count', # TO DO - maybe we should compare the execution count?
             'application/vnd.jupyter.widget-view+json'  # Model IDs are random
         )
         if not config.option.nbdime:
@@ -337,8 +337,8 @@ replace: TIMEIT-REPORT
         """Define a core set of sanitisation expressions."""
         core_regex="""
 [regex1]
-regex: <graphviz.files.Source at [^>]*>
-replace: <graphviz.files.Source>
+regex: <graphviz.sources.Source at 0x[a-f0-9]*>
+replace: <graphviz.sources.Source>
 
 [regex2]
 regex: ^.* per loop .mean ± std. dev. of [0-9]+ runs, [0-9]+ loop each.
@@ -381,14 +381,10 @@ regex: <Graph identifier=.*>
 replace: RDF_GRAPH
 
 [regex12]
-regex: <graphviz.sources.Source at 0x[a-f0-9]*>
-replace: <graphviz.sources.Source>
-
-[regex13]
 regex: \s+[\n\r]+
 replace: \n
 
-[regex14]
+[regex13]
 regex: ObjectId\('[a-f0-9]*'\)
 replace: ObjectId_
 """
