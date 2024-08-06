@@ -16,7 +16,7 @@ import hashlib
 import warnings
 from collections import OrderedDict, defaultdict
 from pathlib import Path
-
+from io import StringIO
 import pandas as pd
 
 from queue import Empty
@@ -587,7 +587,7 @@ class IPyNbCell(pytest.Item):
         df_test = False
         test_out = ()
         if "nbval-test-df" in self.tags and key in item and data_key in item[key]:
-            df = pd.read_html(item[key][data_key])[0]
+            df = pd.read_html(StringIO(item[key][data_key]))[0]
             df_test = True
             test_out = (df.shape, df.columns.tolist())
         return df_test, data_key, test_out
