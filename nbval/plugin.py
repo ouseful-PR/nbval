@@ -388,6 +388,9 @@ replace: <graphviz.sources.Source>
 regex: \s+[\n\r]+
 replace: \n
 
+[regex14]
+regex: ObjectId\('[a-f0-9]*'\)
+replace: ObjectId_
 """
         self.sanitize_patterns.update(get_sanitize_patterns(core_regex))  
 
