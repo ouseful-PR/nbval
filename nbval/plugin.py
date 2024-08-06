@@ -381,7 +381,7 @@ regex: <Graph identifier=.*>
 replace: RDF_GRAPH
 
 [regex12]
-regex: <graphviz.sources.Source at [^>]*>
+regex: <graphviz.sources.Source at 0x[a-f0-9]*>
 replace: <graphviz.sources.Source>
 
 [regex13]
