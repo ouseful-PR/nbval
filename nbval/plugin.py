@@ -176,6 +176,7 @@ def pytest_collect_file(path, parent):
 # nbval-list-membership
 # nbval-set-membership
 # folium-map
+# sk-container
 
 comment_markers = {
     'PYTEST_VALIDATE_IGNORE_OUTPUT': ('check', False),  # For backwards compatibility
@@ -184,6 +185,7 @@ comment_markers = {
     'NBVAL_RAISES_EXCEPTION': 'check_exception',
     'NBVAL_SKIP': 'skip',
     'NBVAL_VARIABLE_OUTPUT': ('check', False),
+    'SK-CONTAINER': ('check', False),
 }
 
 metadata_tags = {
